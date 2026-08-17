@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#F8F5F0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="昭昭专属个人站">
+  <meta name="description" content="昭昭专属个人站 - 工作、成长、情绪与爱人的记录空间">
+  <title>昭昭专属个人站 🌸</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon.svg">
+  <link rel="stylesheet" href="css/style.css?v=2026081722">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column">
+      <div style="font-size:48px;margin-bottom:16px">🌸</div>
+      <div class="spinner"></div>
+      <p style="color:var(--color-text-soft);margin-top:16px;font-size:14px">正在加载昭昭专属个人站…</p>
+    </div>
+  </div>
+
+  <!-- 数据层 -->
+  <script src="js/db.js?v=2026081722"></script>
+  <!-- 隐私锁 -->
+  <script src="js/privacy.js?v=2026081722"></script>
+  <!-- 核心应用 -->
+  <script src="js/app.js?v=2026081722"></script>
+  <!-- 向导 -->
+  <script src="js/wizard.js?v=2026081722"></script>
+  <!-- 功能模块 -->
+  <script src="js/modules/home.js?v=2026081722"></script>
+  <script src="js/modules/timer.js?v=2026081722"></script>
+  <script src="js/modules/reading.js?v=2026081722"></script>
+  <script src="js/modules/workout.js?v=2026081722"></script>
+  <script src="js/modules/emotion.js?v=2026081722"></script>
+  <script src="js/modules/soul.js?v=2026081722"></script>
+  <script src="js/modules/starmap.js?v=2026081722"></script>
+  <script src="js/modules/cards.js?v=2026081722"></script>
+  <script src="js/modules/projects.js?v=2026081722"></script>
+  <script src="js/modules/review.js?v=2026081722"></script>
+  <script src="js/modules/reminders.js?v=2026081722"></script>
+  <script src="js/modules/aichat.js?v=2026081722"></script>
+
+  <!-- Service Worker 注册 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => {
+          console.log('[SW] 注册成功');
+        }).catch(err => {
+          console.log('[SW] 注册失败:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
