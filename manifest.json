@@ -1,0 +1,33 @@
+{
+  "name": "昭昭专属个人站",
+  "short_name": "昭昭记录站",
+  "description": "我的工作、成长、情绪与爱人的记录空间",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F8F5F0",
+  "theme_color": "#8A4E7B",
+  "icons": [
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle", "health"],
+  "lang": "zh-CN",
+  "dir": "ltr"
+}
