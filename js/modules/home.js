@@ -50,7 +50,7 @@ const HomeModule = {
         <div class="card card--blur mb-4">
           <div class="card-title">📖 每日一句</div>
           <p style="font-size:var(--font-size-lg);line-height:1.8;color:var(--color-text)">${quote.zh}</p>
-          <p class="text-soft text-sm mt-2" style="font-style:italic">${quote.en}</p>
+          <p class="text-soft text-sm mt-2" style="font-style:italic">${quote.en} 💕</p>
         </div>
 
         <!-- 运行中计时 -->
