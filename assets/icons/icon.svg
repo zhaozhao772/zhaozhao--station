@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F8F5F0"/>
+      <stop offset="100%" style="stop-color:#F8C5CE"/>
+    </linearGradient>
+    <linearGradient id="flower" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F194A6"/>
+      <stop offset="100%" style="stop-color:#8A4E7B"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- 樱花 -->
+  <g transform="translate(256,256)">
+    <g fill="url(#flower)">
+      <ellipse cx="0" cy="-70" rx="38" ry="58"/>
+      <ellipse cx="0" cy="70" rx="38" ry="58"/>
+      <ellipse cx="-70" cy="0" rx="58" ry="38"/>
+      <ellipse cx="70" cy="0" rx="58" ry="38"/>
+      <ellipse cx="-50" cy="-50" rx="40" ry="40" transform="rotate(45)"/>
+      <ellipse cx="50" cy="50" rx="40" ry="40" transform="rotate(45)"/>
+    </g>
+    <circle r="28" fill="#DB5A6B"/>
+    <circle r="14" fill="#F8C5CE"/>
+  </g>
+  <!-- 装饰星星 -->
+  <text x="100" y="120" font-size="32" fill="#BBA4D9" opacity="0.7">✨</text>
+  <text x="380" y="140" font-size="28" fill="#BBA4D9" opacity="0.6">⭐</text>
+  <text x="120" y="400" font-size="30" fill="#F194A6" opacity="0.5">🌙</text>
+  <text x="390" y="390" font-size="26" fill="#F194A6" opacity="0.6">🦋</text>
+</svg>
