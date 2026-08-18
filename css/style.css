@@ -583,6 +583,25 @@ ul, ol { list-style: none; }
   border-top: 1px solid var(--color-divider);
 }
 
+/* 多行输入框 + 发送按钮横向布局 */
+.chat-input-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.chat-input {
+  flex: 1;
+  border-radius: 18px;
+  padding: 10px 14px;
+}
+.chat-send-btn {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
 /* ============ 提醒中心徽章 ============ */
 .badge {
   display: inline-flex; align-items: center; justify-content: center;
