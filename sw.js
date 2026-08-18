@@ -37,7 +37,13 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(keys => {
-      return Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
+      // 清除所有旧版本缓存（包含 zhaozhao-station-v3、v4 等）
+      return Promise.all(keys.map(k => {
+        if (k !== CACHE_NAME) {
+          console.log('[SW] 清理旧缓存:', k);
+          return caches.delete(k);
+        }
+      }));
     })
   );
   self.clients.claim();
@@ -50,6 +56,22 @@ self.addEventListener('fetch', (event) => {
   // 不拦截 API 请求和 CDN
   if (url.origin !== location.origin) return;
 
+  // HTML/JS/CSS 走网络优先，避免缓存导致改不生效
+  const isAsset = /\.(html|css|js|json)(\?|$)/.test(url.pathname) || url.pathname.endsWith('/');
+  if (isAsset) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response && response.status === 200) {
+          const respClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, respClone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // 其他静态资源用缓存优先
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(response => {
