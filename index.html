@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="theme-color" content="#F8F5F0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -12,7 +15,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icons/icon.svg">
-  <link rel="stylesheet" href="css/style.css?v=2026081813">
+  <link rel="stylesheet" href="css/style.css?v=2026081814">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -25,39 +28,46 @@
     </div>
   </div>
 
-  <!-- 数据层 -->
-  <script src="js/db.js?v=2026081813"></script>
-  <!-- 隐私锁 -->
-  <script src="js/privacy.js?v=2026081813"></script>
-  <!-- 核心应用 -->
-  <script src="js/app.js?v=2026081813"></script>
-  <!-- 向导 -->
-  <script src="js/wizard.js?v=2026081813"></script>
-  <!-- 功能模块 -->
-  <script src="js/modules/home.js?v=2026081813"></script>
-  <script src="js/modules/timer.js?v=2026081813"></script>
-  <script src="js/modules/reading.js?v=2026081813"></script>
-  <script src="js/modules/workout.js?v=2026081813"></script>
-  <script src="js/modules/emotion.js?v=2026081813"></script>
-  <script src="js/modules/soul.js?v=2026081813"></script>
-  <script src="js/modules/starmap.js?v=2026081813"></script>
-  <script src="js/modules/cards.js?v=2026081813"></script>
-  <script src="js/modules/projects.js?v=2026081813"></script>
-  <script src="js/modules/review.js?v=2026081813"></script>
-  <script src="js/modules/reminders.js?v=2026081813"></script>
-  <script src="js/modules/aichat.js?v=2026081813"></script>
-
-  <!-- Service Worker 注册 -->
+  <!-- 卸载旧 Service Worker,不再注册新的 -->
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then(reg => {
-          console.log('[SW] 注册成功');
-        }).catch(err => {
-          console.log('[SW] 注册失败:', err);
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(reg => {
+          reg.unregister();
+          console.log('[SW] 卸载旧SW');
         });
       });
+      if (window.caches) {
+        caches.keys().then(keys => {
+          keys.forEach(k => {
+            caches.delete(k);
+            console.log('[SW] 清理缓存:', k);
+          });
+        });
+      }
     }
   </script>
+
+  <!-- 数据层 -->
+  <script src="js/db.js?v=2026081814"></script>
+  <!-- 隐私锁 -->
+  <script src="js/privacy.js?v=2026081814"></script>
+  <!-- 核心应用 -->
+  <script src="js/app.js?v=2026081814"></script>
+  <!-- 向导 -->
+  <script src="js/wizard.js?v=2026081814"></script>
+  <!-- 功能模块 -->
+  <script src="js/modules/home.js?v=2026081814"></script>
+  <script src="js/modules/timer.js?v=2026081814"></script>
+  <script src="js/modules/reading.js?v=2026081814"></script>
+  <script src="js/modules/workout.js?v=2026081814"></script>
+  <script src="js/modules/emotion.js?v=2026081814"></script>
+  <script src="js/modules/soul.js?v=2026081814"></script>
+  <script src="js/modules/starmap.js?v=2026081814"></script>
+  <script src="js/modules/cards.js?v=2026081814"></script>
+  <script src="js/modules/projects.js?v=2026081814"></script>
+  <script src="js/modules/review.js?v=2026081814"></script>
+  <script src="js/modules/reminders.js?v=2026081814"></script>
+  <script src="js/modules/aichat.js?v=2026081814"></script>
 </body>
 </html>
