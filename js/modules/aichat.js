@@ -1101,10 +1101,10 @@ const AIChatModule = {
     const isUser = m.role === 'user';
     const isError = m.status === 'error';
     return `
-      <div data-msg-id="${m.id}" style="display:flex;justify-content:${isUser?'flex-end':'flex-start'};margin-bottom:8px">
+      <div class="chat-msg-row chat-msg-row--${isUser?'user':'ai'}" data-msg-id="${m.id}">
         <div class="chat-msg chat-msg--${isUser?'user':'ai'} ${isError?'chat-msg--error':''}">
-          ${this._escapeHtml(m.content)}
-          ${!isUser && !isError ? '<div class="ai-badge" style="font-size:9px;margin-top:4px">AI 生成</div>' : ''}
+          <div class="chat-msg__content">${this._escapeHtml(m.content)}</div>
+          ${!isUser && !isError ? '<div class="ai-badge" style="font-size:9px;margin-top:4px;opacity:0.7">AI 生成</div>' : ''}
           <div class="chat-msg__time">${m.created_at?.slice(11,16) || ''}</div>
           ${isError ? '<div class="text-xs" style="color:var(--color-danger)">发送失败</div>' : ''}
           <div class="chat-msg__actions">
@@ -1120,7 +1120,7 @@ const AIChatModule = {
   _renderStreamingMsg(fullText) {
     return `
       <div class="chat-msg chat-msg--ai">
-        ${this._escapeHtml(fullText)}<span class="streaming-cursor">▋</span>
+        <div class="chat-msg__content">${this._escapeHtml(fullText)}<span class="streaming-cursor">▋</span></div>
         <div class="chat-msg__actions">
           <span class="chat-msg__action" onclick="AIChatModule._stopGeneration()">停止</span>
         </div>
@@ -1153,7 +1153,7 @@ const AIChatModule = {
     // 创建 AI 消息占位（流式更新）
     const placeholderId = 'ai-streaming-' + Date.now();
     cm.innerHTML += `
-      <div id="${placeholderId}" style="display:flex;justify-content:flex-start;margin-bottom:8px">
+      <div id="${placeholderId}" class="chat-msg-row chat-msg-row--ai">
         <div class="chat-msg chat-msg--ai">
           <span class="spinner" style="width:16px;height:16px;display:inline-block"></span>
           <div class="chat-msg__actions">
@@ -1608,7 +1608,7 @@ const AIChatModule = {
     const cm = document.getElementById('chatMessages');
     const placeholderId = 'ai-regen-' + Date.now();
     if (cm) {
-      cm.innerHTML += `<div id="${placeholderId}" style="display:flex;justify-content:flex-start;margin-bottom:8px"><div class="chat-msg chat-msg--ai"><span class="spinner" style="width:16px;height:16px;display:inline-block"></span><div class="chat-msg__actions"><span class="chat-msg__action" onclick="AIChatModule._stopGeneration()">停止</span></div></div></div>`;
+      cm.innerHTML += `<div id="${placeholderId}" class="chat-msg-row chat-msg-row--ai"><div class="chat-msg chat-msg--ai"><span class="spinner" style="width:16px;height:16px;display:inline-block"></span><div class="chat-msg__actions"><span class="chat-msg__action" onclick="AIChatModule._stopGeneration()">停止</span></div></div></div>`;
       cm.scrollTop = cm.scrollHeight;
     }
 
