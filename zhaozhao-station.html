@@ -7204,8 +7204,8 @@ const AIChatModule = {
             ${messages.length === 0 ? '<div class="text-center text-faint" style="padding:40px">开始对话吧 💬</div>' : messages.sort((a,b)=>(a.created_at||'').localeCompare(b.created_at||'')).map(m => this._renderMsg(m)).join('')}
           </div>
           <div class="chat-input-bar">
-            <div class="flex gap-2">
-              <input class="input" id="chatInput" placeholder="输入消息…" onkeydown="if(event.key==='Enter')AIChatModule._sendMsg('${convId}')">
+            <div class="flex gap-2" style="align-items:flex-end">
+              <textarea class="input" id="chatInput" placeholder="输入消息…（Enter 换行，点发送按钮发送）" rows="1" style="resize:vertical;min-height:40px;max-height:140px;font-family:inherit"></textarea>
               <button class="btn btn--primary" onclick="AIChatModule._sendMsg('${convId}')">发送</button>
             </div>
           </div>
