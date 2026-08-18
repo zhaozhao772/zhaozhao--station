@@ -84,6 +84,30 @@ const AIChatModule = {
     this.render();
   },
 
+  // 一次性 DOM 升级：把旧版 <div data-msg-id style="display:flex..."> 容器包装成新的 chat-msg-row
+  _upgradeChatDOM() {
+    const cm = document.getElementById('chatMessages');
+    if (!cm) return;
+    // 找所有 data-msg-id 但还不是 chat-msg-row 的容器
+    const oldRows = cm.querySelectorAll('[data-msg-id]:not(.chat-msg-row)');
+    if (oldRows.length === 0) return;
+    console.log('[AIChat] 升级旧消息DOM:', oldRows.length, '条');
+    oldRows.forEach(oldRow => {
+      // 移除旧的 inline style
+      oldRow.removeAttribute('style');
+      oldRow.classList.add('chat-msg-row');
+      // 通过内部气泡类型判断 user/ai
+      const innerMsg = oldRow.querySelector('.chat-msg--user, .chat-msg--ai');
+      if (innerMsg) {
+        if (innerMsg.classList.contains('chat-msg--user')) {
+          oldRow.classList.add('chat-msg-row--user');
+        } else {
+          oldRow.classList.add('chat-msg-row--ai');
+        }
+      }
+    });
+  },
+
   // ============ 资料库 ============
   async showLibrary() {
     const resources = (await DB.list('ai_resources')).filter(r => !r.deleted_at);
@@ -1095,6 +1119,9 @@ const AIChatModule = {
         }
       });
     }
+
+    // 升级旧版消息 DOM（让旧结构也能用新 CSS）
+    this._upgradeChatDOM();
   },
 
   _renderMsg(m) {
