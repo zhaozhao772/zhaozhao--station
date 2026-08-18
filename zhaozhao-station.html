@@ -6260,6 +6260,27 @@ const AIChatModule = {
     this.render();
   },
 
+  // 一次性 DOM 升级：把旧版 <div data-msg-id style="display:flex..."> 容器包装成新的 chat-msg-row
+  _upgradeChatDOM() {
+    const cm = document.getElementById('chatMessages');
+    if (!cm) return;
+    const oldRows = cm.querySelectorAll('[data-msg-id]:not(.chat-msg-row)');
+    if (oldRows.length === 0) return;
+    console.log('[AIChat] 升级旧消息DOM:', oldRows.length, '条');
+    oldRows.forEach(oldRow => {
+      oldRow.removeAttribute('style');
+      oldRow.classList.add('chat-msg-row');
+      const innerMsg = oldRow.querySelector('.chat-msg--user, .chat-msg--ai');
+      if (innerMsg) {
+        if (innerMsg.classList.contains('chat-msg--user')) {
+          oldRow.classList.add('chat-msg-row--user');
+        } else {
+          oldRow.classList.add('chat-msg-row--ai');
+        }
+      }
+    });
+  },
+
   // ============ 资料库 ============
   async showLibrary() {
     const resources = (await DB.list('ai_resources')).filter(r => !r.deleted_at);
@@ -7269,6 +7290,9 @@ const AIChatModule = {
         }
       });
     }
+
+    // 升级旧版消息 DOM
+    this._upgradeChatDOM();
   },
 
   _renderMsg(m) {
