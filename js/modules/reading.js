@@ -74,6 +74,7 @@ const ReadingModule = {
 
   _editForm(book) {
     const categories = ['在看','待看','已看完','多钟类可看'];
+    this._selectedCat = book?.category || '在看';
     UI.modal(book ? '编辑书籍' : '添加书籍', `
       <div class="field">
         <label class="field__label">书名 *</label>
@@ -117,13 +118,12 @@ const ReadingModule = {
         <button class="btn btn--primary" onclick="ReadingModule._save('${book?.id||''}')">保存</button>
       </div>
     `);
-    this._selCat = book?.category || '在看';
   },
 
   _selCat(el) {
     el.parentElement.querySelectorAll('.tag-chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    this._selCat = el.textContent;
+    this._selectedCat = el.textContent.trim();
   },
 
   async _save(id) {
@@ -135,7 +135,7 @@ const ReadingModule = {
       type: document.getElementById('bType').value,
       format: document.getElementById('bFormat').value,
       platform: document.getElementById('bPlatform').value,
-      category: this._selCat || '在看',
+      category: this._selectedCat || '在看',
       read_date: document.getElementById('bDate').value,
     };
     if (id) { data.id = id; }
