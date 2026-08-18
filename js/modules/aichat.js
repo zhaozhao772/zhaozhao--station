@@ -1050,9 +1050,9 @@ const AIChatModule = {
             ${messages.length === 0 ? '<div class="text-center text-faint" style="padding:40px">开始对话吧 💬</div>' : messages.sort((a,b)=>(a.created_at||'').localeCompare(b.created_at||'')).map(m => this._renderMsg(m)).join('')}
           </div>
           <div class="chat-input-bar">
-            <div class="flex gap-2">
-              <input class="input" id="chatInput" placeholder="输入消息…" onkeydown="if(event.key==='Enter')AIChatModule._sendMsg('${convId}')">
-              <button class="btn btn--primary" onclick="AIChatModule._sendMsg('${convId}')">发送</button>
+            <div class="chat-input-wrap">
+              <textarea class="input chat-input" id="chatInput" placeholder="输入消息…（回车换行，Shift+回车发送）" rows="2" style="resize:none;min-height:60px;max-height:160px;font-family:inherit;font-size:15px;line-height:1.5"></textarea>
+              <button class="btn btn--primary chat-send-btn" onclick="AIChatModule._sendMsg('${convId}')">发送</button>
             </div>
           </div>
         </div>
@@ -1077,6 +1077,23 @@ const AIChatModule = {
       if (bar) bar.classList.remove('hidden');
       const countEl = document.getElementById('selectCount');
       if (countEl) countEl.textContent = `已选 ${this._state.selectedMsgIds.size} 条`;
+    }
+
+    // 输入框键盘事件：回车换行，Shift+回车发送，Ctrl/Cmd+回车发送
+    const input = document.getElementById('chatInput');
+    if (input && !input._boundEnter) {
+      input._boundEnter = true;
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+          // 纯回车 = 换行（默认行为）
+          return;
+        }
+        if (e.key === 'Enter' && e.shiftKey && !e.isComposing) {
+          // Shift+回车 = 发送
+          e.preventDefault();
+          this._sendMsg(convId);
+        }
+      });
     }
   },
 
