@@ -84,48 +84,6 @@ const AIChatModule = {
     this.render();
   },
 
-  // 一次性 DOM 升级：把旧版 <div data-msg-id style="display:flex..."> 容器包装成新的 chat-msg-row
-  // 同时注入 inline style 作为兜底,防止 CSS 缓存导致宽度不对
-  _upgradeChatDOM() {
-    const cm = document.getElementById('chatMessages');
-    if (!cm) return;
-
-    // 1. 注入兜底 CSS（如果 .chat-msg-row 类没生效也能撑起布局）
-    if (!document.getElementById('chatmsg-fallback-style')) {
-      const style = document.createElement('style');
-      style.id = 'chatmsg-fallback-style';
-      style.textContent = `
-        .chat-msg-row { display:block !important; width:100% !important; clear:both; margin-bottom:10px; }
-        .chat-msg-row--user { text-align:right !important; }
-        .chat-msg-row--ai { text-align:left !important; }
-        .chat-msg { display:inline-block !important; max-width:80% !important; width:auto !important;
-                    text-align:left; padding:10px 14px; border-radius:18px; line-height:1.5;
-                    word-break:break-word; white-space:pre-wrap; box-sizing:border-box; vertical-align:top; }
-        .chat-msg--user { background:#ebdfec; color:#8A4E7B; border-bottom-right-radius:4px; }
-        .chat-msg--ai { background:#FAF7F2; border:1px solid #E5D5E5; border-bottom-left-radius:4px; }
-      `;
-      document.head.appendChild(style);
-      console.log('[AIChat] 已注入气泡兜底CSS');
-    }
-
-    // 2. 升级旧结构容器
-    const oldRows = cm.querySelectorAll('[data-msg-id]:not(.chat-msg-row)');
-    if (oldRows.length === 0) return;
-    console.log('[AIChat] 升级旧消息DOM:', oldRows.length, '条');
-    oldRows.forEach(oldRow => {
-      oldRow.removeAttribute('style');
-      oldRow.classList.add('chat-msg-row');
-      const innerMsg = oldRow.querySelector('.chat-msg--user, .chat-msg--ai');
-      if (innerMsg) {
-        if (innerMsg.classList.contains('chat-msg--user')) {
-          oldRow.classList.add('chat-msg-row--user');
-        } else {
-          oldRow.classList.add('chat-msg-row--ai');
-        }
-      }
-    });
-  },
-
   // ============ 资料库 ============
   async showLibrary() {
     const resources = (await DB.list('ai_resources')).filter(r => !r.deleted_at);
@@ -1092,9 +1050,9 @@ const AIChatModule = {
             ${messages.length === 0 ? '<div class="text-center text-faint" style="padding:40px">开始对话吧 💬</div>' : messages.sort((a,b)=>(a.created_at||'').localeCompare(b.created_at||'')).map(m => this._renderMsg(m)).join('')}
           </div>
           <div class="chat-input-bar">
-            <div class="chat-input-wrap">
-              <textarea class="input chat-input" id="chatInput" placeholder="输入消息…（回车换行，Shift+回车发送）" rows="2" style="resize:none;min-height:60px;max-height:160px;font-family:inherit;font-size:15px;line-height:1.5"></textarea>
-              <button class="btn btn--primary chat-send-btn" onclick="AIChatModule._sendMsg('${convId}')">发送</button>
+            <div class="flex gap-2">
+              <input class="input" id="chatInput" placeholder="输入消息…" onkeydown="if(event.key==='Enter')AIChatModule._sendMsg('${convId}')">
+              <button class="btn btn--primary" onclick="AIChatModule._sendMsg('${convId}')">发送</button>
             </div>
           </div>
         </div>
@@ -1120,49 +1078,16 @@ const AIChatModule = {
       const countEl = document.getElementById('selectCount');
       if (countEl) countEl.textContent = `已选 ${this._state.selectedMsgIds.size} 条`;
     }
-
-    // 输入框键盘事件：回车换行，Shift+回车发送，Ctrl/Cmd+回车发送
-    const input = document.getElementById('chatInput');
-    if (input && !input._boundEnter) {
-      input._boundEnter = true;
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
-          // 纯回车 = 换行（默认行为）
-          return;
-        }
-        if (e.key === 'Enter' && e.shiftKey && !e.isComposing) {
-          // Shift+回车 = 发送
-          e.preventDefault();
-          this._sendMsg(convId);
-        }
-      });
-    }
-
-    // 升级旧版消息 DOM（让旧结构也能用新 CSS）
-    this._upgradeChatDOM();
-
-    // 兜底:给所有 .chat-msg 强制设置内联 style,防止旧CSS导致宽度不对
-    requestAnimationFrame(() => {
-      const cm = document.getElementById('chatMessages');
-      if (!cm) return;
-      cm.querySelectorAll('.chat-msg').forEach(msg => {
-        msg.style.maxWidth = '80%';
-        msg.style.display = 'inline-block';
-        msg.style.width = 'auto';
-        msg.style.boxSizing = 'border-box';
-        msg.style.verticalAlign = 'top';
-      });
-    });
   },
 
   _renderMsg(m) {
     const isUser = m.role === 'user';
     const isError = m.status === 'error';
     return `
-      <div class="chat-msg-row chat-msg-row--${isUser?'user':'ai'}" data-msg-id="${m.id}">
+      <div data-msg-id="${m.id}" style="display:flex;justify-content:${isUser?'flex-end':'flex-start'};margin-bottom:8px">
         <div class="chat-msg chat-msg--${isUser?'user':'ai'} ${isError?'chat-msg--error':''}">
           <div class="chat-msg__content">${this._escapeHtml(m.content)}</div>
-          ${!isUser && !isError ? '<div class="ai-badge" style="font-size:9px;margin-top:4px;opacity:0.7">AI 生成</div>' : ''}
+          ${!isUser && !isError ? '<div class="ai-badge" style="font-size:9px;margin-top:4px;opacity:.6">AI 生成</div>' : ''}
           <div class="chat-msg__time">${m.created_at?.slice(11,16) || ''}</div>
           ${isError ? '<div class="text-xs" style="color:var(--color-danger)">发送失败</div>' : ''}
           <div class="chat-msg__actions">
@@ -1211,7 +1136,7 @@ const AIChatModule = {
     // 创建 AI 消息占位（流式更新）
     const placeholderId = 'ai-streaming-' + Date.now();
     cm.innerHTML += `
-      <div id="${placeholderId}" class="chat-msg-row chat-msg-row--ai">
+      <div id="${placeholderId}" style="display:flex;justify-content:flex-start;margin-bottom:8px">
         <div class="chat-msg chat-msg--ai">
           <span class="spinner" style="width:16px;height:16px;display:inline-block"></span>
           <div class="chat-msg__actions">
@@ -1666,7 +1591,7 @@ const AIChatModule = {
     const cm = document.getElementById('chatMessages');
     const placeholderId = 'ai-regen-' + Date.now();
     if (cm) {
-      cm.innerHTML += `<div id="${placeholderId}" class="chat-msg-row chat-msg-row--ai"><div class="chat-msg chat-msg--ai"><span class="spinner" style="width:16px;height:16px;display:inline-block"></span><div class="chat-msg__actions"><span class="chat-msg__action" onclick="AIChatModule._stopGeneration()">停止</span></div></div></div>`;
+      cm.innerHTML += `<div id="${placeholderId}" style="display:flex;justify-content:flex-start;margin-bottom:8px"><div class="chat-msg chat-msg--ai"><span class="spinner" style="width:16px;height:16px;display:inline-block"></span><div class="chat-msg__actions"><span class="chat-msg__action" onclick="AIChatModule._stopGeneration()">停止</span></div></div></div>`;
       cm.scrollTop = cm.scrollHeight;
     }
 
