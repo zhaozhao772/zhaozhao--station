@@ -279,13 +279,19 @@ ul, ol { list-style: none; }
   background: var(--color-bg-alt);
   font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  user-select: none;
+  transition: all 0.18s ease;
 }
+.tag-chip:hover { border-color: var(--color-rose); transform: translateY(-1px); }
+.tag-chip:active { transform: scale(0.96); }
 .tag-chip.active {
   background: var(--color-rose-soft);
   border-color: var(--color-rose);
   color: var(--color-primary);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(241,148,166,0.28);
 }
+.tag-chip.active::before { content: '✓ '; font-weight: 700; }
 
 /* ============ 工具类 ============ */
 .grid { display: grid; gap: 16px; }
