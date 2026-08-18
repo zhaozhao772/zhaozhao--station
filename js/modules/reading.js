@@ -30,7 +30,7 @@ const ReadingModule = {
               <div class="flex flex-col gap-2">
                 ${catBooks.map(b => `
                   <div class="list-item">
-                    <span style="font-size:24px">${b.format==='电子'?'📱':'📕'}</span>
+                    <span class="book-icon">📚</span>
                     <div class="list-item__main" style="cursor:pointer" onclick="ReadingModule.detail('${b.id}')">
                       <div class="list-item__title">${b.title}</div>
                       <div class="list-item__sub">${b.author||'未知作者'} · ${b.platform||'-'}</div>
@@ -60,7 +60,7 @@ const ReadingModule = {
   },
 
   _catIcon(cat) {
-    return { '在看':'📖','待看':'📋','已看完':'✅','多钟类可看':'🌟' }[cat] || '📚';
+    return '📚';
   },
 
   async add() {
