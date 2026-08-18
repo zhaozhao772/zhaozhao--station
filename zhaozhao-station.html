@@ -293,13 +293,19 @@ ul, ol { list-style: none; }
   background: var(--color-bg-alt);
   font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  user-select: none;
+  transition: all 0.18s ease;
 }
+.tag-chip:hover { border-color: var(--color-rose); transform: translateY(-1px); }
+.tag-chip:active { transform: scale(0.96); }
 .tag-chip.active {
   background: var(--color-rose-soft);
   border-color: var(--color-rose);
   color: var(--color-primary);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(241,148,166,0.28);
 }
+.tag-chip.active::before { content: '✓ '; font-weight: 700; }
 
 /* ============ 工具类 ============ */
 .grid { display: grid; gap: 16px; }
@@ -2927,6 +2933,7 @@ const ReadingModule = {
 
   _editForm(book) {
     const categories = ['在看','待看','已看完','多钟类可看'];
+    this._selectedCat = book?.category || '在看';
     UI.modal(book ? '编辑书籍' : '添加书籍', `
       <div class="field">
         <label class="field__label">书名 *</label>
@@ -2970,13 +2977,12 @@ const ReadingModule = {
         <button class="btn btn--primary" onclick="ReadingModule._save('${book?.id||''}')">保存</button>
       </div>
     `);
-    this._selCat = book?.category || '在看';
   },
 
   _selCat(el) {
     el.parentElement.querySelectorAll('.tag-chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    this._selCat = el.textContent;
+    this._selectedCat = el.textContent.trim();
   },
 
   async _save(id) {
@@ -2988,7 +2994,7 @@ const ReadingModule = {
       type: document.getElementById('bType').value,
       format: document.getElementById('bFormat').value,
       platform: document.getElementById('bPlatform').value,
-      category: this._selCat || '在看',
+      category: this._selectedCat || '在看',
       read_date: document.getElementById('bDate').value,
     };
     if (id) { data.id = id; }
