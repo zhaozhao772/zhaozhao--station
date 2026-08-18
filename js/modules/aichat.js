@@ -85,18 +85,36 @@ const AIChatModule = {
   },
 
   // 一次性 DOM 升级：把旧版 <div data-msg-id style="display:flex..."> 容器包装成新的 chat-msg-row
+  // 同时注入 inline style 作为兜底,防止 CSS 缓存导致宽度不对
   _upgradeChatDOM() {
     const cm = document.getElementById('chatMessages');
     if (!cm) return;
-    // 找所有 data-msg-id 但还不是 chat-msg-row 的容器
+
+    // 1. 注入兜底 CSS（如果 .chat-msg-row 类没生效也能撑起布局）
+    if (!document.getElementById('chatmsg-fallback-style')) {
+      const style = document.createElement('style');
+      style.id = 'chatmsg-fallback-style';
+      style.textContent = `
+        .chat-msg-row { display:block !important; width:100% !important; clear:both; margin-bottom:10px; }
+        .chat-msg-row--user { text-align:right !important; }
+        .chat-msg-row--ai { text-align:left !important; }
+        .chat-msg { display:inline-block !important; max-width:80% !important; width:auto !important;
+                    text-align:left; padding:10px 14px; border-radius:18px; line-height:1.5;
+                    word-break:break-word; white-space:pre-wrap; box-sizing:border-box; vertical-align:top; }
+        .chat-msg--user { background:#ebdfec; color:#8A4E7B; border-bottom-right-radius:4px; }
+        .chat-msg--ai { background:#FAF7F2; border:1px solid #E5D5E5; border-bottom-left-radius:4px; }
+      `;
+      document.head.appendChild(style);
+      console.log('[AIChat] 已注入气泡兜底CSS');
+    }
+
+    // 2. 升级旧结构容器
     const oldRows = cm.querySelectorAll('[data-msg-id]:not(.chat-msg-row)');
     if (oldRows.length === 0) return;
     console.log('[AIChat] 升级旧消息DOM:', oldRows.length, '条');
     oldRows.forEach(oldRow => {
-      // 移除旧的 inline style
       oldRow.removeAttribute('style');
       oldRow.classList.add('chat-msg-row');
-      // 通过内部气泡类型判断 user/ai
       const innerMsg = oldRow.querySelector('.chat-msg--user, .chat-msg--ai');
       if (innerMsg) {
         if (innerMsg.classList.contains('chat-msg--user')) {
@@ -1122,6 +1140,19 @@ const AIChatModule = {
 
     // 升级旧版消息 DOM（让旧结构也能用新 CSS）
     this._upgradeChatDOM();
+
+    // 兜底:给所有 .chat-msg 强制设置内联 style,防止旧CSS导致宽度不对
+    requestAnimationFrame(() => {
+      const cm = document.getElementById('chatMessages');
+      if (!cm) return;
+      cm.querySelectorAll('.chat-msg').forEach(msg => {
+        msg.style.maxWidth = '80%';
+        msg.style.display = 'inline-block';
+        msg.style.width = 'auto';
+        msg.style.boxSizing = 'border-box';
+        msg.style.verticalAlign = 'top';
+      });
+    });
   },
 
   _renderMsg(m) {
