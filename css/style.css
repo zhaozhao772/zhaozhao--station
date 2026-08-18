@@ -576,7 +576,7 @@ ul, ol { list-style: none; }
   white-space: pre-wrap;
 }
 .chat-msg--user {
-  background: var(--color-rose-soft);
+  background: #ebdfec;
   color: var(--color-primary);
   margin-left: auto;
   align-items: flex-end;
