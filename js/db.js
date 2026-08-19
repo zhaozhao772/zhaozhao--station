@@ -64,7 +64,11 @@ function uuid() {
 }
 
 function nowISO() {
-  return new Date().toISOString();
+  // 本地时区的 ISO 格式（YYYY-MM-DDTHH:mm:ss.sss），不带 Z
+  // 避免显示 UTC 时间导致与用户感知差 8 小时
+  const d = new Date();
+  const pad = (n, l = 2) => String(n).padStart(l, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
 }
 
 function todayKey() {
@@ -213,6 +217,46 @@ const DB = {
   },
   async hardDelete(storeName, id) { return dbDelete(storeName, id); },
   async count(storeName) { return dbCount(storeName); },
+
+  // ============ 时间戳迁移（UTC → 本地时区） ============
+  // 历史数据中 created_at / updated_at / deleted_at 使用 toISOString() 生成 UTC
+  // （如 2026-08-19T10:30:19.123Z），渲染时直接 slice(11,16) 会显示 UTC 时间，
+  // 与用户感知差 8 小时。本方法把所有带 'Z' 后缀的时间字段转换为本地时区字符串。
+  async migrateUTCTimestamps() {
+    if (localStorage.getItem('ts_migrated_v1') === '1') return { skipped: true };
+    let fixed = 0;
+    const isoZ = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
+    function toLocal(iso) {
+      if (typeof iso !== 'string' || !isoZ.test(iso)) return iso;
+      const d = new Date(iso);  // 按 UTC 解析
+      const pad = (n, l = 2) => String(n).padStart(l, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
+    }
+    const tsFields = ['created_at', 'updated_at', 'deleted_at'];
+    const allStores = STORE_DEFS.map(s => s.name);
+    for (const store of allStores) {
+      let rows;
+      try { rows = await dbGetAll(store); } catch (e) { continue; }
+      if (!Array.isArray(rows)) continue;
+      for (const row of rows) {
+        if (!row || typeof row !== 'object') continue;
+        let dirty = false;
+        for (const f of tsFields) {
+          if (typeof row[f] === 'string' && isoZ.test(row[f])) {
+            row[f] = toLocal(row[f]);
+            dirty = true;
+          }
+        }
+        // 某些表里把时间戳存在 settings.value 里等嵌套字段，跳过避免误伤
+        if (dirty) {
+          await dbPut(store, row);
+          fixed++;
+        }
+      }
+    }
+    localStorage.setItem('ts_migrated_v1', '1');
+    return { fixed };
+  },
 
   // ============ 备份与恢复 ============
   async createBackup(reason = 'manual') {
