@@ -35,6 +35,12 @@ const App = {
     const isNew = await DB.init();
     await DB.log('app_init', { is_new_user: isNew });
 
+    // 1.5 一次性迁移：把历史 UTC 时间戳转成本地时区字符串（修正聊天时间戳显示）
+    try {
+      const r = await DB.migrateUTCTimestamps();
+      if (r && !r.skipped) console.log(`[DB] 时间戳迁移完成，修正 ${r.fixed} 条`);
+    } catch (e) { console.warn('[DB] 时间戳迁移失败:', e); }
+
     // 2. 加载设置
     this.state.settings = await DB.getAllSettings();
 
