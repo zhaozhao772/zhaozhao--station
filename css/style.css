@@ -603,7 +603,7 @@ ul, ol { list-style: none; }
   border: 1px solid var(--color-border);
   border-bottom-left-radius: 4px;
 }
-.chat-msg__time { font-size: 10px; color: var(--color-text-faint); margin-top: 4px; align-self: inherit; opacity: .7; }
+.chat-msg__time { font-size: 10px; color: var(--color-text-faint); margin-top: 4px; align-self: inherit; opacity: .7; letter-spacing: 0.2px; white-space: nowrap; }
 .chat-msg__actions { display: flex; gap: 4px; margin-top: 6px; align-self: inherit; }
 .chat-msg__action { font-size: var(--font-size-xs); color: var(--color-text-faint); padding: 2px 6px; border-radius: 4px; }
 .chat-msg__action:hover { background: var(--color-divider); color: var(--color-text); }
