@@ -1088,7 +1088,7 @@ const AIChatModule = {
         <div class="chat-msg chat-msg--${isUser?'user':'ai'} ${isError?'chat-msg--error':''}">
           <div class="chat-msg__content">${this._escapeHtml(m.content)}</div>
           ${!isUser && !isError ? '<div class="ai-badge" style="font-size:9px;margin-top:4px;opacity:.6">AI 生成</div>' : ''}
-          <div class="chat-msg__time">${m.created_at?.slice(11,16) || ''}</div>
+          <div class="chat-msg__time" title="${this._escapeHtml(m.created_at || '')}">${this._fmtMsgTime(m.created_at)}</div>
           ${isError ? '<div class="text-xs" style="color:var(--color-danger)">发送失败</div>' : ''}
           <div class="chat-msg__actions">
             <span class="chat-msg__action" onclick="AIChatModule._copyMsg('${m.id}')">复制</span>
@@ -1098,6 +1098,23 @@ const AIChatModule = {
         </div>
       </div>
     `;
+  },
+
+  // 消息时间格式化：MM/DD HH:mm，当年消息省略年份；跨年显示 YYYY/MM/DD HH:mm
+  // 同时处理 UTC（带Z）和本地时区两种格式
+  _fmtMsgTime(iso) {
+    if (!iso) return '';
+    let d;
+    if (typeof iso === 'string' && /Z$/.test(iso)) {
+      d = new Date(iso);  // UTC 解析
+    } else {
+      d = new Date(iso);  // 本地时区字符串（无Z），new Date 会按本地解析
+    }
+    if (isNaN(d.getTime())) return iso.slice(11, 16) || '';
+    const pad = n => String(n).padStart(2, '0');
+    const y = d.getFullYear(), mo = pad(d.getMonth()+1), da = pad(d.getDate()), hh = pad(d.getHours()), mm = pad(d.getMinutes());
+    const thisYear = new Date().getFullYear();
+    return y === thisYear ? `${mo}/${da} ${hh}:${mm}` : `${y}/${mo}/${da} ${hh}:${mm}`;
   },
 
   _renderStreamingMsg(fullText) {
