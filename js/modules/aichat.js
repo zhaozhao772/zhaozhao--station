@@ -1036,7 +1036,6 @@ const AIChatModule = {
 
         <!-- 工具栏 -->
         <div class="chat-toolbar flex gap-2 mb-3 flex-wrap">
-          <button class="btn btn--sm btn--primary" onclick="AIChatModule._showCalendar('${convId}')" data-test="calendar-btn">📆 日历</button>
           <div class="card--blur" style="padding:6px 12px;border-radius:999px">
             <span class="text-faint text-xs">连接: ${conn?.name||'-'} · 模型: ${conn?.model||'-'}</span>
           </div>
@@ -1045,6 +1044,7 @@ const AIChatModule = {
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showBookmarks('${convId}')">🔖 收藏</button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._toggleMultiSelect()">☑️ 多选</button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._previewContext('${convId}')">👁️ 预览</button>
+          <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showCalendar('${convId}')">📆 日历</button>
         </div>
 
         <div class="card" style="min-height:400px;display:flex;flex-direction:column">
