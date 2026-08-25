@@ -1,5 +1,5 @@
 // 昭昭专属个人站 - Service Worker
-const CACHE_NAME = 'zhaozhao-station-v11';
+const CACHE_NAME = 'zhaozhao-station-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -49,6 +49,12 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   // 不拦截 API 请求和 CDN
   if (url.origin !== location.origin) return;
+
+  // 带 ?nocache= 或 ?t= 参数的请求：完全绕开缓存（用于重置/调试）
+  if (url.searchParams.has('nocache') || url.searchParams.has('t')) {
+    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(cached => {
