@@ -275,7 +275,7 @@ const App = {
     if (h < 6) return `凌晨好，${name}，注意休息呀`;
     if (h < 11) return `早上好，${name}，今天也要元气满满`;
     if (h < 14) return `中午好，${name}，记得吃午饭哦`;
-    if (h < 18) return `下午好，${name}，辛苦啦`;
+    if (h < 18) return `下午好，${name}，辛苦啦💞`;
     if (h < 22) return `晚上好，${name}，今天过得怎么样`;
     return `夜深了，${name}，早点休息`;
   },
