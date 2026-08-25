@@ -49,9 +49,11 @@
 
   <!-- Service Worker 注册 -->
   <script>
-    // 强制重置工具：URL 加 ?reset=1 时清空所有 SW 注册和缓存后刷新
+    // 强制重置工具：URL 加 ?reset=1 时清空所有 SW 注册和缓存后强制刷新
     if (location.search.includes('reset=1')) {
       (async () => {
+        // 标记开始重置，避免 SW fetch 旧资源
+        try { sessionStorage.setItem('__reseting', '1'); } catch (e) {}
         try {
           if ('serviceWorker' in navigator) {
             const regs = await navigator.serviceWorker.getRegistrations();
@@ -64,15 +66,19 @@
             console.log('[SW] 已清空', names.length, '个缓存');
           }
         } catch (e) { console.error('[SW] 重置失败:', e); }
-        // 去掉 reset 参数后刷新
+        // 去掉 reset 参数，用 no-cache 头强制从服务器拉新版本
         const url = new URL(location.href);
         url.searchParams.delete('reset');
-        location.replace(url.pathname + (url.search ? url.search : '') + url.hash);
+        // 关键：用 location.replace + 强制重新拉取（浏览器 HTTP 缓存也会被绕开）
+        const target = url.pathname + (url.search ? url.search : '') + url.hash;
+        // 给资源加时间戳，绕开所有 HTTP 缓存
+        const sep = target.includes('?') ? '&' : '?';
+        location.replace(target + sep + 't=' + Date.now());
       })();
     } else {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js').then(reg => {
+          navigator.serviceWorker.register('sw.js?v=11').then(reg => {
             console.log('[SW] 注册成功 scope=', reg.scope);
           }).catch(err => {
             console.log('[SW] 注册失败:', err);
