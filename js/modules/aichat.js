@@ -1024,6 +1024,7 @@ const AIChatModule = {
     const conv = await DB.get('ai_conversations', convId);
     if (!conv) return;
     this._currentConvId = convId;
+    this._state.currentConvId = convId;
     const messages = (await DB.list('ai_messages')).filter(m => !m.deleted_at && m.conversation_id === convId && !m.branch_archived);
     const conn = await DB.get('ai_connections', conv.connection_id);
     const html = `
@@ -1043,11 +1044,22 @@ const AIChatModule = {
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showBookmarks('${convId}')">🔖 收藏</button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._toggleMultiSelect()">☑️ 多选</button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._previewContext('${convId}')">👁️ 预览</button>
+          <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showCalendar('${convId}')">📆 日历</button>
         </div>
 
         <div class="card" style="min-height:400px;display:flex;flex-direction:column">
+          ${this._renderDateFilterBar(messages)}
           <div id="chatMessages" style="flex:1;overflow-y:auto;max-height:50vh;margin-bottom:12px">
-            ${messages.length === 0 ? '<div class="text-center text-faint" style="padding:40px">开始对话吧 💬</div>' : messages.sort((a,b)=>(a.created_at||'').localeCompare(b.created_at||'')).map(m => this._renderMsg(m)).join('')}
+            ${(() => {
+              const df = this._state.dateFilter;
+              const visible = df ? messages.filter(m => (m.created_at || '').slice(0, 10) === df) : messages;
+              if (visible.length === 0) {
+                return df
+                  ? `<div class="text-center text-faint" style="padding:40px">${df} 当天没有消息</div>`
+                  : '<div class="text-center text-faint" style="padding:40px">开始对话吧 💬</div>';
+              }
+              return visible.sort((a,b)=>(a.created_at||'').localeCompare(b.created_at||'')).map(m => this._renderMsg(m)).join('');
+            })()}
           </div>
           <div class="chat-input-bar">
             <div class="flex gap-2" style="align-items:flex-end">
@@ -1487,6 +1499,122 @@ const AIChatModule = {
     return orderStr.split(',').map(s => s.trim()).filter(Boolean);
   },
 
+  // 顶部日期过滤条：当有 dateFilter 时显示"当前过滤：xx，显示全部"提示
+  _renderDateFilterBar(messages) {
+    const df = this._state.dateFilter;
+    if (!df) return '';
+    const count = messages.filter(m => (m.created_at || '').slice(0, 10) === df).length;
+    return `
+      <div class="date-filter-bar">
+        <span>📆 当前只看：<b>${df}</b>（${count} 条）</span>
+        <button class="btn btn--sm btn--ghost" onclick="AIChatModule._clearDateFilter()">显示全部</button>
+      </div>
+    `;
+  },
+
+  // 显示日历面板
+  async _showCalendar(convId) {
+    const messages = (await DB.list('ai_messages')).filter(m => !m.deleted_at && m.conversation_id === convId && !m.branch_archived);
+    // 提取所有有消息的日期（YYYY-MM-DD）
+    const daysWithMsgs = new Set();
+    messages.forEach(m => { const d = (m.created_at || '').slice(0, 10); if (d) daysWithMsgs.add(d); });
+    if (daysWithMsgs.size === 0) {
+      UI.toast('当前对话还没有消息', 'info', 2000);
+      return;
+    }
+    // 用最新一个有消息的日期所在月作为默认显示月
+    const dates = [...daysWithMsgs].sort();
+    const latest = dates[dates.length - 1];
+    this._calView = { y: +latest.slice(0, 4), m: +latest.slice(5, 7), days: daysWithMsgs, convId };
+    this._renderCalendar();
+  },
+
+  _renderCalendar() {
+    const { y, m, days, convId } = this._calView;
+    const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+    const firstDay = new Date(y, m - 1, 1).getDay(); // 0=Sun
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const df = this._state.dateFilter;
+
+    const cells = [];
+    // 空白填充
+    for (let i = 0; i < firstDay; i++) cells.push('<div class="cal-cell cal-empty"></div>');
+    // 日期
+    for (let d = 1; d <= daysInMonth; d++) {
+      const k = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const has = days.has(k);
+      const isToday = k === todayKey;
+      const isSel = k === df;
+      cells.push(`<div class="cal-cell ${has?'cal-has':''} ${isToday?'cal-today':''} ${isSel?'cal-sel':''}" data-key="${k}">
+        <span class="cal-d">${d}</span>
+        ${has ? '<span class="cal-dot"></span>' : ''}
+      </div>`);
+    }
+    // 补齐 6 行（42 格）
+    while (cells.length % 7 !== 0) cells.push('<div class="cal-cell cal-empty"></div>');
+
+    const html = `
+      <div class="cal-panel">
+        <div class="cal-head">
+          <button class="btn btn--sm btn--ghost" onclick="AIChatModule._calNav(-1)">‹</button>
+          <div class="cal-title">${y}年 ${monthNames[m-1]}</div>
+          <button class="btn btn--sm btn--ghost" onclick="AIChatModule._calNav(1)">›</button>
+        </div>
+        <div class="cal-weekrow">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="cal-grid">${cells.join('')}</div>
+        <div class="cal-foot">
+          <span class="text-faint text-xs">小圆点 = 当天有消息 · 点击日期过滤</span>
+          <button class="btn btn--sm" onclick="UI.closeModal()">关闭</button>
+        </div>
+      </div>
+    `;
+    UI.modal('📆 消息日历', html);
+    // 绑定点击事件（事件代理）
+    const grid = document.querySelector('.cal-grid');
+    if (grid) {
+      grid.addEventListener('click', e => {
+        const cell = e.target.closest('.cal-cell');
+        if (!cell || !cell.dataset.key) return;
+        const key = cell.dataset.key;
+        const hasDot = cell.classList.contains('cal-has');
+        if (!hasDot) {
+          UI.toast('当天没有消息', 'info', 1200);
+          return;
+        }
+        this._filterByDate(key, convId);
+      });
+    }
+  },
+
+  _calNav(delta) {
+    if (!this._calView) return;
+    let { y, m } = this._calView;
+    m += delta;
+    if (m < 1) { m = 12; y--; }
+    if (m > 12) { m = 1; y++; }
+    this._calView.y = y;
+    this._calView.m = m;
+    this._renderCalendar();
+  },
+
+  _filterByDate(dateKey, convId) {
+    this._state.dateFilter = dateKey;
+    UI.closeModal();
+    if (convId || this._state.currentConvId) {
+      this.openChat(convId || this._state.currentConvId);
+    }
+  },
+
+  _clearDateFilter() {
+    this._state.dateFilter = null;
+    const convId = this._state.currentConvId;
+    if (convId) this.openChat(convId);
+  },
+
   async _previewContext(convId) {
     const conv = await DB.get('ai_conversations', convId);
     if (!conv) return;
@@ -1802,7 +1930,7 @@ const AIChatModule = {
   },
 
   // ============ 多选收藏 ============
-  _state: { multiSelectMode: false, selectedMsgIds: new Set() },
+  _state: { multiSelectMode: false, selectedMsgIds: new Set(), dateFilter: null, currentConvId: null },
 
   _toggleMultiSelect() {
     this._state.multiSelectMode = !this._state.multiSelectMode;
