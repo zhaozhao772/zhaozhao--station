@@ -1,5 +1,5 @@
 // 昭昭专属个人站 - Service Worker
-const CACHE_NAME = 'zhaozhao-station-v12';
+const CACHE_NAME = 'zhaozhao-station-v13';
 const ASSETS = [
   './',
   './index.html',
@@ -50,12 +50,31 @@ self.addEventListener('fetch', (event) => {
   // 不拦截 API 请求和 CDN
   if (url.origin !== location.origin) return;
 
-  // 带 ?nocache= 或 ?t= 参数的请求：完全绕开缓存（用于重置/调试）
+  // 带 ?nocache= 或 ?t= 参数：完全绕开缓存
   if (url.searchParams.has('nocache') || url.searchParams.has('t')) {
     event.respondWith(fetch(event.request, { cache: 'no-store' }));
     return;
   }
 
+  // 关键修复：JS / CSS 文件用 network-first 策略，确保浏览器拿到最新代码
+  // 只有在网络失败时才回退到缓存
+  const isCode = /\.(js|css)(\?|#|$)/.test(url.pathname);
+  if (isCode) {
+    event.respondWith(
+      fetch(event.request, { cache: 'reload' })
+        .then(response => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then(c => c || new Response('/* offline */', { headers: { 'Content-Type': 'application/javascript' } })))
+    );
+    return;
+  }
+
+  // 其他资源（HTML/图片）：cache-first + 后台更新
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(response => {
