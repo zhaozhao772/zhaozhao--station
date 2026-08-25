@@ -55,6 +55,10 @@ const App = {
     this.applyTheme();
     this.state.wizardDone = true;
 
+    // 调试用：打印各模块版本号
+    console.log('[VERSION] app.js 加载于', new Date().toLocaleString());
+    if (window.AIChatModule) console.log('[VERSION] aichat.js:', AIChatModule._VERSION);
+
     // 5. 每日重置
     await DB.dailyReset();
 
