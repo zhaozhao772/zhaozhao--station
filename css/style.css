@@ -9,7 +9,7 @@
   --color-bg: #F8F5F0;          /* 梨花白 */
   --color-bg-alt: #FBF7F3;
   --color-surface: #FFFFFF;
-  --color-surface-blur: rgba(255,255,255,0.72);
+  --color-surface-blur: rgba(255,255,255,0.80);
   --color-primary: #8A4E7B;     /* 雾感紫调豆沙 */
   --color-primary-soft: #B68AA8;
   --color-rose: #F194A6;        /* 玫瑰粉 */
@@ -55,7 +55,7 @@
   --color-bg: #2A2330;
   --color-bg-alt: #322A3B;
   --color-surface: #3A3142;
-  --color-surface-blur: rgba(58,49,66,0.78);
+  --color-surface-blur: rgba(58,49,66,0.85);
   --color-primary: #C99AC0;
   --color-primary-soft: #9E6E96;
   --color-rose: #E8A0AC;
@@ -92,17 +92,21 @@ body {
   font-size: var(--font-size-base);
 }
 
-/* 背景装饰 */
+/* 背景装饰 - 图二壁纸：固定不动（position:fixed），内容滚动 */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(241,148,166,0.08), transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(187,164,217,0.08), transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(138,78,123,0.03), transparent 70%);
+  background: url('../assets/bg/hero.jpg') center / cover no-repeat;
   pointer-events: none;
   z-index: 0;
+}
+
+/* 深色模式：壁纸上方叠深色柔光遮罩，保证整体协调 */
+[data-theme="dark"] body::before {
+  background:
+    linear-gradient(rgba(42,35,48,0.82), rgba(42,35,48,0.86)),
+    url('../assets/bg/hero.jpg') center / cover no-repeat;
 }
 
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
@@ -207,7 +211,9 @@ ul, ol { list-style: none; }
 
 /* ============ 卡片 ============ */
 .card {
-  background: var(--color-surface);
+  background: var(--color-surface-blur);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: var(--shadow-sm);
@@ -386,7 +392,9 @@ ul, ol { list-style: none; }
   .modal-overlay { align-items: center; padding: 24px; }
 }
 .modal {
-  background: var(--color-surface);
+  background: var(--color-surface-blur);
+  backdrop-filter: blur(24px) saturate(1.1);
+  -webkit-backdrop-filter: blur(24px) saturate(1.1);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   width: 100%; max-width: 560px;
   max-height: 88vh;
