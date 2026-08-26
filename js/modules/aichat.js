@@ -1,10 +1,10 @@
 /**
  * 跨维沟通 AI 角色对话模块
  * 包含：五类资料库、多供应商 API 适配、聊天、分支、长记忆、受控摘要
- * @version 2026-08-25-13:54-日历按钮已移至预览右侧-ghost样式
+ * @version 2026-08-26-12:00-全站背景图换成图二壁纸-卡片毛玻璃
  */
 const AIChatModule = {
-  _VERSION: '2026-08-25-14:22-下午好加💞表情',
+  _VERSION: '2026-08-26-12:00-全站背景图换成图二壁纸-卡片毛玻璃',
   async render() {
     if (!App.state.settings.enable_ai) {
       document.getElementById('pageContent').innerHTML = `<div class="page"><div class="card">${UI.empty('💬','AI 功能未开启，可在设置中开启')}<button class="btn btn--sm mt-2" onclick="SettingsModule._setSetting('enable_ai',true);App.navigate('ai-chat')">开启 AI</button></div></div>`;
