@@ -457,6 +457,8 @@ const AngelModule = (function () {
      ============================================================ */
   async function render() {
     const pageContent = document.getElementById('pageContent');
+    // 清理主站 router 留下的 loading spinner，避免内容叠加
+    if (pageContent) pageContent.innerHTML = '';
     _dom = document.createElement('div');
     _dom.className = 'angel';
     _dom.innerHTML =
