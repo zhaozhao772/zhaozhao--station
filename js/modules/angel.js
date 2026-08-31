@@ -14,6 +14,11 @@ const AngelModule = (function () {
   }
   function uid() { return 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function pad2(n) { return String(n).padStart(2, '0'); }
+  function fmtLocal(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
   function fmtDate(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
   function todayStr() { return fmtDate(new Date()); }
   function last14Days() { const a = []; for (let i = 13; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); a.push(fmtDate(d)); } return a; }
@@ -833,7 +838,7 @@ const AngelModule = (function () {
     let html = '<div class="arow" style="margin-bottom:12px"><button class="abtn asm" onclick="AngelModule.backToRecords()">← 返回列表</button></div>';
     html += '<div class="acard"><div class="ah-title">📋 解读详情</div>' +
       '<div class="astat-line">复盘日期：' + esc(rec.reviewDate || '') + '</div>' +
-      '<div class="astat-line">保存时间：' + esc((rec.createdAt || '').replace('T', ' ').slice(0, 16)) + '</div></div>';
+      '<div class="astat-line">保存时间：' + esc(fmtLocal(rec.createdAt)) + '</div></div>';
     grs.forEach((gr, gi) => {
       html += '<div class="acard a-soft"><div style="font-weight:700;color:var(--color-primary-deep)">第 ' + (gi + 1) + ' 组 ' + gr.numbers.map(esc).join(' · ') + '</div>' +
         '<div class="amuted">心理状态：' + esc(gr.calibration.mood || '中性') +
