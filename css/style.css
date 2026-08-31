@@ -826,3 +826,136 @@ mark {
   border-radius: 2px;
 }
 
+
+/* ============================================================
+   天使数字解读模块（AngelModule）
+   ============================================================ */
+.angel .angel-topbar{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.angel .angel-title{font-size:20px;font-weight:700;color:var(--color-primary);letter-spacing:.5px}
+.angel .angel-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.angel .angel-tabs::-webkit-scrollbar{display:none}
+.angel .angel-tab{flex-shrink:0;padding:7px 14px;border-radius:999px;border:1px solid var(--color-border);background:var(--color-surface-blur);color:var(--color-text-soft);font-size:14px;cursor:pointer;transition:all .18s;backdrop-filter:blur(8px)}
+.angel .angel-tab.active{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:#fff;border-color:transparent;font-weight:600}
+.angel .angel-tab:not(.active):hover{border-color:var(--color-rose-soft);color:var(--color-primary)}
+.angel .angel-body{display:flex;flex-direction:column;gap:0}
+
+/* 步骤条 */
+.angel .astepbar{display:flex;align-items:center;gap:4px;margin-bottom:16px;overflow-x:auto;padding:2px;flex-wrap:wrap}
+.angel .as{flex-shrink:0;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--color-text-faint)}
+.angel .adot{width:26px;height:26px;border-radius:50%;background:var(--color-divider);color:var(--color-text-soft);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.angel .as.on .adot{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:#fff}
+.angel .as.on{color:var(--color-primary);font-weight:600}
+.angel .aln{flex-shrink:0;width:16px;height:2px;background:var(--color-divider)}
+
+/* 卡片 */
+.angel .acard{background:var(--color-surface-blur);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm);border:1px solid var(--color-border);margin-bottom:14px}
+.angel .a-soft{background:var(--color-bg-alt)}
+.angel .ah-title{font-size:17px;font-weight:700;color:var(--color-primary);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.angel .ah-sub{font-size:13px;color:var(--color-text-soft);margin-bottom:12px}
+.angel .asec-title{font-size:15px;font-weight:700;color:var(--color-primary);margin:16px 0 8px}
+
+/* 表单 */
+.angel .afield{margin-bottom:14px}
+.angel .afield label{display:block;font-size:13.5px;font-weight:600;color:var(--color-text);margin-bottom:6px}
+.angel .ahint{font-size:12px;color:var(--color-text-faint);margin-top:5px}
+.angel .ainput,.angel .atextarea,.angel .aselect{width:100%;padding:10px 13px;border-radius:var(--radius-md);border:1px solid var(--color-border);background:var(--color-surface);font-size:15px;color:var(--color-text);transition:border .2s;font-family:inherit}
+.angel .ainput:focus,.angel .atextarea:focus,.angel .aselect:focus{outline:none;border-color:var(--color-rose);box-shadow:0 0 0 3px rgba(241,148,166,.18)}
+.angel .atextarea{resize:vertical;min-height:72px;line-height:1.6}
+.angel .aempty-hint{font-size:12.5px;padding:6px 10px;border-radius:8px;margin-top:6px;display:inline-block}
+.angel .aempty-hint.yes{background:var(--color-rose-soft);color:var(--color-primary);font-weight:600}
+.angel .aempty-hint.no{background:var(--color-divider);color:var(--color-text-soft)}
+
+/* 按钮 */
+.angel .abtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 22px;border-radius:999px;font-size:15px;font-weight:600;border:none;cursor:pointer;transition:all .18s;min-height:42px;background:var(--color-surface);color:var(--color-text);border:1px solid var(--color-border)}
+.angel .abtn:active{transform:scale(.97)}
+.angel .abtn-primary{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:#fff;box-shadow:0 4px 14px rgba(241,148,166,.3);border-color:transparent}
+.angel .abtn-primary:hover{filter:brightness(1.05)}
+.angel .asm{padding:8px 16px;font-size:13px;min-height:36px}
+.angel .ablock{width:100%}
+.angel .a-danger{color:var(--color-danger);border-color:var(--color-danger)}
+.angel .arow{display:flex;gap:10px;flex-wrap:wrap}
+
+/* 胶囊 */
+.angel .achips,.angel .adate-chips{display:flex;flex-wrap:wrap;gap:8px}
+.angel .achip{padding:7px 14px;border-radius:999px;border:1px solid var(--color-border);background:var(--color-surface);font-size:13.5px;color:var(--color-text-soft);cursor:pointer;user-select:none;transition:all .16s;display:inline-flex;align-items:center;gap:5px}
+.angel .achip:hover{border-color:var(--color-rose-soft);color:var(--color-primary)}
+.angel .achip.on{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));border-color:transparent;color:#fff;font-weight:600}
+.angel .achip-x{width:16px;height:16px;border-radius:50%;background:var(--color-danger);color:#fff;font-size:11px;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0}
+.angel .achip-btn{padding:6px 12px;border-radius:999px;border:1px dashed var(--color-rose);background:transparent;font-size:12.5px;color:var(--color-primary);cursor:pointer}
+.angel .achip-btn:hover{background:var(--color-rose-soft)}
+.angel .adate-chip{padding:7px 11px;border-radius:12px;border:1px solid var(--color-border);background:var(--color-surface);font-size:12.5px;color:var(--color-text-soft);cursor:pointer;text-align:center;line-height:1.35;transition:all .16s}
+.angel .adate-chip b{display:block;font-size:13.5px;font-weight:600;color:var(--color-text)}
+.angel .adate-chip.on{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));border-color:transparent;color:#fff}
+.angel .adate-chip.on b{color:#fff}
+
+/* 候选 */
+.angel .anum-card{background:var(--color-surface-blur);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow-sm);border:1px solid var(--color-border);margin-bottom:14px;overflow:hidden}
+.angel .anum-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.angel .anum-big{font-size:26px;font-weight:800;color:var(--color-primary);letter-spacing:2px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.angel .atop1-box{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));border:1px solid var(--color-rose-soft);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:13px}
+.angel .atop1-tag{font-size:11.5px;font-weight:700;color:#fff;background:var(--color-primary);border-radius:999px;padding:2px 10px;display:inline-block;margin-bottom:7px;letter-spacing:1px}
+.angel .acand{display:flex;gap:10px;padding:11px 4px;border-bottom:1px dashed var(--color-border);align-items:flex-start}
+.angel .acand:last-child{border-bottom:none}
+.angel .atop1-cand{padding:0;border:none}
+.angel .abadge{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14.5px;font-family:ui-monospace,monospace}
+.angel .a-b-hi{background:var(--color-rose);color:#fff;box-shadow:0 3px 8px rgba(241,148,166,.4)}
+.angel .a-b-md{background:var(--color-rose-soft);color:var(--color-primary)}
+.angel .a-b-lo{background:var(--color-divider);color:var(--color-text-soft)}
+.angel .acand-body{flex:1;min-width:0}
+.angel .acand-label{font-size:14.5px;font-weight:700;color:var(--color-text)}
+.angel .acand-src{font-size:11.5px;color:var(--color-text-faint);font-weight:400;margin-left:6px}
+.angel .acand-text{font-size:14px;color:var(--color-text);margin-top:2px;word-break:break-word}
+.angel .acand-reason{font-size:12px;color:var(--color-text-faint);margin-top:4px;line-height:1.55;word-break:break-all}
+.angel .abias-warn{background:#fdf3e3;border:1px solid #f3ddb8;color:#9a6b1f;border-radius:var(--radius-md);padding:11px 14px;font-size:13px;line-height:1.65;margin-bottom:13px}
+
+/* 折叠 */
+.angel details.afold{border:1px solid var(--color-border);border-radius:var(--radius-md);margin-top:11px;background:var(--color-bg-alt);overflow:hidden}
+.angel details.afold summary{list-style:none;cursor:pointer;padding:10px 14px;font-size:13.5px;font-weight:600;color:var(--color-primary);display:flex;align-items:center;gap:6px;user-select:none}
+.angel details.afold summary::-webkit-details-marker{display:none}
+.angel details.afold summary::before{content:'▸';transition:transform .2s;font-size:12px}
+.angel details.afold[open] summary::before{transform:rotate(90deg)}
+.angel .afold-body{padding:4px 14px 13px;font-size:13px;color:var(--color-text-soft);line-height:1.8}
+.angel .achain-line{padding:2px 0}
+.angel .achain-line b{color:var(--color-text);font-weight:600}
+
+/* 主导数字 */
+.angel .adom-line{display:flex;flex-wrap:wrap;gap:8px}
+.angel .adom-item{background:var(--color-rose-soft);border-radius:12px;padding:8px 14px;text-align:center}
+.angel .adom-item .an{font-size:19px;font-weight:800;color:var(--color-primary);font-family:ui-monospace,monospace}
+.angel .adom-item .ac{font-size:11.5px;color:var(--color-text-soft)}
+.angel .anarr-card{background:linear-gradient(135deg,var(--color-bg),var(--color-rose-soft))}
+
+/* 记录 */
+.angel .arec-item{cursor:pointer;transition:all .18s}
+.angel .arec-item:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.angel .arec-meta{font-size:12px;color:var(--color-text-faint);display:flex;flex-wrap:wrap;gap:5px 12px;margin-bottom:6px}
+.angel .arec-nums{font-family:ui-monospace,monospace;font-weight:700;color:var(--color-primary);font-size:16px;letter-spacing:1px;margin-bottom:4px}
+.angel .arec-top{font-size:13.5px;color:var(--color-text);background:var(--color-rose-soft);border-radius:8px;padding:6px 10px;margin-top:6px}
+.angel .arec-top b{color:var(--color-primary)}
+.angel .aedit-banner{background:#faf1e2;color:#9a6b1f;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* 词典 */
+.angel .adict-num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:var(--color-primary);font-weight:800;font-size:16px;margin-right:8px;font-family:ui-monospace,monospace}
+.angel .aedited-mark{font-size:11px;color:#c99a5b;background:#faf1e2;border-radius:999px;padding:1px 8px;margin-left:6px}
+.angel .acond-summary{font-size:11.5px;color:var(--color-text-faint);background:var(--color-divider);border-radius:6px;padding:2px 8px;display:inline-block;margin-left:6px}
+.angel .acond-editor{background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:12px;padding:12px;margin:8px 0}
+.angel .acond-row{margin-bottom:8px;font-size:13px}
+.angel .acond-row label{font-weight:600;font-size:12.5px;display:block;margin-bottom:4px;color:var(--color-text-soft)}
+.angel .amini-check{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--color-text-soft);background:var(--color-surface);border:1px solid var(--color-border);border-radius:999px;padding:4px 11px;cursor:pointer;margin:2px 4px 2px 0;user-select:none}
+.angel .amini-check.on{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));border-color:transparent;color:#fff;font-weight:600}
+
+/* 杂项 */
+.angel .aempty-box{text-align:center;padding:36px 16px;color:var(--color-text-faint);font-size:14px}
+.angel .ae-icon{font-size:40px;margin-bottom:10px}
+.angel .amuted{font-size:12.5px;color:var(--color-text-faint)}
+.angel .astat-line{font-size:13px;color:var(--color-text-soft);margin:4px 0}
+.angel .adivider{height:1px;background:var(--color-border);margin:14px 0}
+
+/* 全局 toast / modal（模块用，避免与主站冲突） */
+.atoast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(74,59,69,.92);color:#fff;padding:10px 20px;border-radius:999px;font-size:14px;z-index:9999;transition:transform .3s;max-width:86vw;text-align:center}
+.atoast.show{transform:translateX(-50%) translateY(0)}
+.amodal-wrap{position:relative;z-index:9500}
+.angel .amodal-mask,.angel .amodal-mask{position:fixed;inset:0;background:rgba(74,59,69,.4);backdrop-filter:blur(3px);z-index:9500;display:flex;align-items:center;justify-content:center;padding:22px}
+.angel .amodal{background:var(--color-surface);border-radius:var(--radius-lg);padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto}
+.angel .amodal h3{font-size:16px;color:var(--color-primary);margin-bottom:10px}
+.angel .amodal p{font-size:14px;color:var(--color-text);margin-bottom:14px;line-height:1.7;word-break:break-word}
