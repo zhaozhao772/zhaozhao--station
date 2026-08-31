@@ -1,5 +1,5 @@
 // 昭昭专属个人站 - Service Worker
-const CACHE_NAME = 'zhaozhao-station-v16';
+const CACHE_NAME = 'zhaozhao-station-v17';
 const ASSETS = [
   './',
   './index.html',
@@ -71,7 +71,12 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request).then(c => c || new Response('/* offline */', { headers: { 'Content-Type': 'application/javascript' } })))
+        .catch(() => caches.match(event.request).then(c => {
+          if (c) return c;
+          // 新增文件未缓存且网络失败：返回带提示的 stub，方便排查
+          const msg = `console.error('[SW] 未缓存且网络失败: ${url.pathname}。请下拉刷新或清除缓存后重试。')`;
+          return new Response(msg, { headers: { 'Content-Type': 'application/javascript' }, status: 200 });
+        }))
     );
     return;
   }
