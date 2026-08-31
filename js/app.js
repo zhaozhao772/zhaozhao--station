@@ -28,6 +28,7 @@ const App = {
     { id: 'cards',      name: '字卡传讯', icon: '💌', privacy: false },
     { id: 'ai-chat',    name: '跨维沟通', icon: '💬', privacy: true },
     { id: 'reminders',  name: '提醒中心', icon: '🔔', privacy: false },
+    { id: 'angel',      name: '天使数字解读', icon: '🔢', privacy: false },
   ],
 
   async init() {
@@ -192,6 +193,7 @@ const App = {
       cards: () => CardsModule.render(),
       'ai-chat': () => AIChatModule.render(),
       reminders: () => RemindersModule.render(),
+      angel: () => AngelModule.render(),
       settings: () => SettingsModule.render(),
     };
     const fn = router[pageId];
