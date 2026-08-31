@@ -8486,6 +8486,13 @@ const AIChatModule = {
  * 兼容：首次打开时把旧 localStorage['angel_numbers_v1'] 一次性复制进来（旧键保留）
  * @version 2026-08-31-迁移为个人站模块
  * ============================================================ */
+/* ============================================================
+ * 天使数字解读模块（AngelModule）
+ * 由独立工具「天使数字解读.html」迁移而来
+ * 数据存储：个人站 IndexedDB（zhaozhao_station_db）新增 angel_* 表
+ * 兼容：首次打开时把旧 localStorage['angel_numbers_v1'] 一次性复制进来（旧键保留）
+ * @version 2026-08-31-迁移为个人站模块
+ * ============================================================ */
 const AngelModule = (function () {
   'use strict';
 
@@ -8938,6 +8945,8 @@ const AngelModule = (function () {
      ============================================================ */
   async function render() {
     const pageContent = document.getElementById('pageContent');
+    // 清理主站 router 留下的 loading spinner，避免内容叠加
+    if (pageContent) pageContent.innerHTML = '';
     _dom = document.createElement('div');
     _dom.className = 'angel';
     _dom.innerHTML =
@@ -9799,6 +9808,8 @@ const AngelModule = (function () {
 /* 供验收：暴露到 window（仅调试用，不污染全局） */
 if (typeof window !== 'undefined') {
   window.AngelModule = AngelModule;
+}
+
 }
 </script>
 </body>
