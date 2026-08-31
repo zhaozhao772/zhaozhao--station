@@ -11,7 +11,7 @@
 
 // ============ 常量定义（固定身份，不得随意修改） ============
 const DB_NAME = 'zhaozhao_station_db';       // 固定数据库名
-const DB_VERSION = 1;                          // 数据版本号
+const DB_VERSION = 2;                          // 数据版本号（v2 新增 angel_* 表）
 const LS_PREFIX = 'zhaozhao_';                 // localStorage 键前缀
 const BACKUP_PREFIX = 'zhaozhao_backup_';      // 备份键前缀
 
@@ -51,6 +51,10 @@ const STORE_DEFS = [
   { name: 'bookmarks',       keyPath: 'id' },            // 书签收藏
   { name: 'audit_log',       keyPath: 'id' },            // 审计日志
   { name: 'backups_meta',    keyPath: 'id' },            // 备份元数据
+  { name: 'angel_records',   keyPath: 'id' },            // 天使数字解读记录
+  { name: 'angel_personal',  keyPath: 'id' },            // 天使数字·私人约定
+  { name: 'angel_dict',      keyPath: 'key' },           // 天使数字·词典编辑记录（key: digit:/aspect:/pair:/narr:）
+  { name: 'angel_custom_tags', keyPath: 'id' },          // 天使数字·自定义动向标签
 ];
 
 // ============ 工具函数 ============
@@ -201,6 +205,8 @@ const DB = {
   // 通用 CRUD
   async list(storeName) { return dbGetAll(storeName); },
   async get(storeName, id) { return dbGet(storeName, id); },
+  // put：原样写入/覆盖记录（不做字段加工），适合调用方已构造完整结构的场景（如 angel 模块）
+  async put(storeName, record) { return dbPut(storeName, record); },
   async save(storeName, record) {
     if (!record.id) record.id = uuid();
     record.updated_at = nowISO();
