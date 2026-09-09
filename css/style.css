@@ -959,3 +959,120 @@ mark {
 .amodal{background:var(--color-surface);border-radius:var(--radius-lg);padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto}
 .amodal h3{font-size:16px;color:var(--color-primary);margin-bottom:10px}
 .amodal p{font-size:14px;color:var(--color-text);margin-bottom:14px;line-height:1.7;word-break:break-word}
+
+/* ============================================================
+   早睡打卡模块（SleepModule）
+   注意：stoast / smodal 挂在 body 上，选择器不能带 .sleep 前缀
+   ============================================================ */
+.sleep .sleep-topbar{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.sleep .sleep-title{font-size:20px;font-weight:700;color:var(--color-primary);letter-spacing:.5px}
+.sleep .sleep-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.sleep .sleep-tabs::-webkit-scrollbar{display:none}
+.sleep .sleep-tab{flex-shrink:0;padding:7px 14px;border-radius:999px;border:1px solid var(--color-border);background:var(--color-surface-blur);color:var(--color-text-soft);font-size:14px;cursor:pointer;transition:all .18s;backdrop-filter:blur(8px)}
+.sleep .sleep-tab.active{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:#fff;border-color:transparent;font-weight:600}
+.sleep .sleep-tab:not(.active):hover{border-color:var(--color-rose-soft);color:var(--color-primary)}
+
+/* 卡片（毛玻璃，与主站一致） */
+.sleep .scard{background:var(--color-surface-blur);backdrop-filter:blur(18px) saturate(1.1);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;box-shadow:0 4px 20px rgba(74,59,69,.06)}
+.sleep .scard.s-soft{background:rgba(255,255,255,.55);padding:12px 14px;font-size:13.5px;color:var(--color-text-soft)}
+.sleep .sh-title{font-size:16px;font-weight:700;color:var(--color-primary-deep,var(--color-primary));margin-bottom:12px}
+
+/* 连续徽章条 */
+.sleep .s-streak-bar{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.sleep .s-streak-num{font-size:34px;font-weight:800;color:var(--color-rose);line-height:1}
+.sleep .s-streak-txt{font-size:14px;color:var(--color-text-soft);font-weight:600}
+.sleep .s-streak-sep{color:var(--color-text-faint)}
+.sleep .s-pill{margin-left:auto;font-size:12.5px;padding:4px 12px;border-radius:999px;border:1px solid var(--color-border)}
+.sleep .s-pill.saved{background:rgba(109,184,130,.14);color:#4d8a5e;border-color:transparent}
+.sleep .s-pill.pending{background:rgba(232,121,166,.12);color:var(--color-rose);border-color:transparent}
+
+/* 日期区 */
+.sleep .s-weekday{font-size:14px;color:var(--color-text-soft);font-weight:600;padding:6px 2px}
+.sleep .sday-pill{font-size:13px;padding:6px 14px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;transition:all .15s;font-weight:500}
+.sleep .sday-pill.work{color:#8b5cf6;background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.25)}
+.sleep .sday-pill.work.on{background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#fff;border-color:transparent;font-weight:700}
+.sleep .sday-pill.rest{color:#e879a6;background:rgba(232,121,166,.08);border-color:rgba(232,121,166,.25)}
+.sleep .sday-pill.rest.on{background:linear-gradient(135deg,#f0a4c4,#e879a6);color:#fff;border-color:transparent;font-weight:700}
+
+/* 表单 */
+.sleep .srow{display:flex;align-items:center;gap:8px}
+.sleep .sgrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.sleep .sfield{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.sleep .sfield label{font-weight:600;font-size:12.5px;color:var(--color-text-soft);display:flex;align-items:baseline;justify-content:space-between}
+.sleep .sinput,.sleep .stextarea{border:1px solid var(--color-border);border-radius:12px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.75);color:var(--color-text);outline:none;transition:border .15s;width:100%;font-family:inherit}
+.sleep .sinput:focus,.sleep .stextarea:focus{border-color:var(--color-rose)}
+.sleep .stextarea{resize:vertical;min-height:56px}
+.sleep .shint{font-size:12.5px;color:var(--color-text-faint);line-height:1.6}
+.sleep .sdur{font-size:15px;font-weight:700;color:var(--color-primary);padding:8px 0}
+.sleep .srange-val{font-size:13px;color:var(--color-rose);font-weight:700}
+.sleep .srange{width:100%;accent-color:var(--color-rose);cursor:pointer}
+
+/* 标签 chips */
+.sleep .schips{display:flex;flex-wrap:wrap;gap:6px}
+.sleep .schip{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;border:1px solid var(--color-border);background:rgba(255,255,255,.7);font-size:13px;cursor:pointer;transition:all .15s;user-select:none}
+.sleep .schip:hover{border-color:var(--color-rose-soft)}
+.sleep .schip.on{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:#fff;border-color:transparent;font-weight:600}
+.sleep .schip-x{font-style:normal;opacity:.55;font-size:11px;padding:0 2px}
+.sleep .schip-x:hover{opacity:1;color:#d9534f}
+.sleep .schip-add{padding:6px 12px;border-radius:999px;border:1px dashed var(--color-border);background:transparent;color:var(--color-text-faint);font-size:13px;cursor:pointer}
+.sleep .schip-add:hover{border-color:var(--color-rose);color:var(--color-rose)}
+
+/* 按钮 */
+.sleep .sbtn{padding:9px 18px;border-radius:12px;border:1px solid var(--color-border);background:rgba(255,255,255,.8);color:var(--color-text);font-size:14px;cursor:pointer;transition:all .18s;font-family:inherit}
+.sleep .sbtn:hover{border-color:var(--color-rose-soft)}
+.sleep .sbtn-primary{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:#fff;border-color:transparent;font-weight:600}
+.sleep .sbtn-primary:hover{filter:brightness(1.05)}
+.sleep .sbtn-danger{background:rgba(217,83,79,.12);color:#c05552;border-color:transparent;font-weight:600}
+.sleep .sbtn.ssm{padding:6px 14px;font-size:13px;border-radius:10px}
+.sleep .sbtn[data-ghost]{background:transparent}
+.sleep .sbtn[disabled]{opacity:.55;cursor:not-allowed}
+.sleep .sblock{flex:1}
+
+/* 挑战 */
+.sleep .schallenge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.sleep .schallenge-card{border:1px solid var(--color-border);border-radius:14px;padding:14px 12px;text-align:center;background:rgba(255,255,255,.6);position:relative;overflow:hidden}
+.sleep .schallenge-card.done{background:linear-gradient(135deg,rgba(255,214,128,.22),rgba(232,121,166,.1));border-color:rgba(232,166,66,.4)}
+.sleep .sch-icon{font-size:30px;margin-bottom:6px}
+.sleep .sch-name{font-size:13.5px;font-weight:700;color:var(--color-text)}
+.sleep .sch-state{font-size:12px;color:var(--color-text-faint);margin:4px 0 8px}
+.sleep .sprogress{height:6px;border-radius:99px;background:rgba(74,59,69,.1);overflow:hidden}
+.sleep .sprogress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--color-rose-soft),var(--color-rose));transition:width .4s}
+
+/* 统计网格 */
+.sleep .sstat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}
+.sleep .sstat-cell{border:1px solid var(--color-border);border-radius:12px;padding:10px 8px;text-align:center;background:rgba(255,255,255,.55)}
+.sleep .sstat-val{font-size:15px;font-weight:800;color:var(--color-primary);word-break:break-all}
+.sleep .sstat-label{font-size:11.5px;color:var(--color-text-faint);margin-top:3px}
+
+/* 图表 */
+.sleep .schart-wrap{height:220px;position:relative}
+
+/* 空态 */
+.sleep .sempty{text-align:center;padding:30px 16px;color:var(--color-text-faint);font-size:14px;line-height:2}
+
+/* 个人复盘 */
+.sleep .s-personal{border-color:rgba(232,121,166,.35)}
+.sleep .stag-core{font-size:11px;background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:#fff;padding:3px 9px;border-radius:999px;vertical-align:middle;margin-left:6px;font-weight:500}
+
+/* AI 复盘（对话框形式） */
+.sleep .s-ai{border-color:rgba(139,92,246,.3)}
+.sleep .sai-disclaim{font-size:12px;color:#8b5cf6;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);padding:7px 11px;border-radius:10px;margin-bottom:12px;line-height:1.6}
+.sleep .sai-thread{display:flex;flex-direction:column;gap:12px}
+.sleep .sai-msg{display:flex;gap:10px;align-items:flex-start}
+.sleep .sai-avatar{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#c4b5fd,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 3px 10px rgba(139,92,246,.3)}
+.sleep .sai-bubble{background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.18);border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:13.5px;line-height:1.8;color:var(--color-text);flex:1;word-break:break-word}
+.sleep .sai-bubble.sai-empty{color:var(--color-text-soft)}
+.sleep .sai-meta{font-size:11.5px;color:var(--color-text-faint);margin-top:8px;padding-left:46px}
+.sleep .smd-h2{font-weight:700;color:#8b5cf6;margin:10px 0 4px;font-size:14.5px}
+.sleep .smd-h3{font-weight:700;color:var(--color-text);margin:8px 0 3px;font-size:13.5px}
+.sleep .smd-li{padding-left:12px;margin:2px 0}
+
+/* 全局 toast / modal（挂 body，不能带 .sleep 前缀！） */
+.stoast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(74,59,69,.92);color:#fff;padding:10px 20px;border-radius:999px;font-size:14px;z-index:9999;transition:transform .3s;max-width:86vw;text-align:center}
+.stoast.show{transform:translateX(-50%) translateY(0)}
+.stoast.err{background:rgba(180,70,70,.95)}
+.smodal-wrap{position:relative;z-index:9500}
+.smodal-mask{position:fixed;inset:0;background:rgba(74,59,69,.4);backdrop-filter:blur(3px);z-index:9500;display:flex;align-items:center;justify-content:center;padding:22px}
+.smodal{background:var(--color-surface);border-radius:var(--radius-lg);padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto}
+.smodal h3{font-size:16px;color:var(--color-primary);margin-bottom:10px}
+.smodal p{font-size:14px;color:var(--color-text);margin-bottom:14px;line-height:1.7;word-break:break-word}
