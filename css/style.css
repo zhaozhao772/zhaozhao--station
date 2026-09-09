@@ -1076,3 +1076,15 @@ mark {
 .smodal{background:var(--color-surface);border-radius:var(--radius-lg);padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto}
 .smodal h3{font-size:16px;color:var(--color-primary);margin-bottom:10px}
 .smodal p{font-size:14px;color:var(--color-text);margin-bottom:14px;line-height:1.7;word-break:break-word}
+/* 弹窗内部组件（挂 body，不能带 .sleep 前缀，否则不生效） */
+.smodal .srow{display:flex;align-items:center;gap:8px}
+.smodal .sinput,.smodal .stextarea{border:1px solid var(--color-border);border-radius:12px;padding:9px 12px;font-size:14px;background:rgba(255,255,255,.75);color:var(--color-text);outline:none;transition:border .15s;width:100%;font-family:inherit}
+.smodal .sinput:focus,.smodal .stextarea:focus{border-color:var(--color-rose)}
+.smodal .sbtn{padding:9px 18px;border-radius:12px;border:1px solid var(--color-border);background:rgba(255,255,255,.8);color:var(--color-text);font-size:14px;cursor:pointer;transition:all .18s;font-family:inherit}
+.smodal .sbtn:hover{border-color:var(--color-rose-soft)}
+.smodal .sbtn-primary{background:linear-gradient(135deg,var(--color-rose-soft),var(--color-rose));color:#fff;border-color:transparent;font-weight:600}
+.smodal .sbtn-primary:hover{filter:brightness(1.05)}
+.smodal .sbtn.ssm{padding:6px 14px;font-size:13px;border-radius:10px}
+.smodal .sbtn[data-ghost]{background:transparent}
+.smodal .sbtn[disabled]{opacity:.55;cursor:not-allowed}
+.smodal .sfield{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
