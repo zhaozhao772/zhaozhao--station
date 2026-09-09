@@ -1340,6 +1340,8 @@ const DB = {
     return true;
   },
   async hardDelete(storeName, id) { return dbDelete(storeName, id); },
+  // delete：按 keyPath 删除记录（模块自定义标签等场景使用）
+  async delete(storeName, key) { return dbDelete(storeName, key); },
   async count(storeName) { return dbCount(storeName); },
 
   // ============ 时间戳迁移（UTC → 本地时区） ============
