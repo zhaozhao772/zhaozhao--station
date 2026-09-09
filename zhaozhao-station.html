@@ -1067,6 +1067,17 @@ mark {
 .sleep .smd-h3{font-weight:700;color:var(--color-text);margin:8px 0 3px;font-size:13.5px}
 .sleep .smd-li{padding-left:12px;margin:2px 0}
 
+/* 夜间苏醒记录 */
+.sleep .swake-pill{padding:7px 18px;border-radius:999px;border:1px solid var(--color-border);background:rgba(255,255,255,.7);font-size:13px;cursor:pointer;transition:all .15s;user-select:none}
+.sleep .swake-pill:hover{border-color:var(--color-rose-soft)}
+.sleep .swake-pill.yes.on{background:linear-gradient(135deg,#c4b5fd,#8b5cf6);color:#fff;border-color:transparent;font-weight:700}
+.sleep .swake-pill.no.on{background:linear-gradient(135deg,#f0a4c4,#e879a6);color:#fff;border-color:transparent;font-weight:700}
+.sleep .sep-card{border:1px solid rgba(139,92,246,.22);border-left:3px solid #8b5cf6;border-radius:12px;padding:12px 12px 4px;margin-top:12px;background:rgba(139,92,246,.04)}
+.sleep .sep-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sleep .sep-badge{font-size:12px;font-weight:700;color:#8b5cf6;background:rgba(139,92,246,.1);padding:3px 10px;border-radius:999px}
+.sleep .sep-del{font-size:12px;color:#c05552;background:none;border:none;cursor:pointer;padding:3px 8px;border-radius:8px}
+.sleep .sep-del:hover{background:rgba(217,83,79,.08)}
+
 /* 全局 toast / modal（挂 body，不能带 .sleep 前缀！） */
 .stoast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(74,59,69,.92);color:#fff;padding:10px 20px;border-radius:999px;font-size:14px;z-index:9999;transition:transform .3s;max-width:86vw;text-align:center}
 .stoast.show{transform:translateX(-50%) translateY(0)}
@@ -9977,13 +9988,6 @@ if (typeof window !== 'undefined') {
  * - AI 复盘通过 AIChatModule.askAI 委托调用，本模块全程不接触 API key
  * - 存储表：sleep_records / sleep_reviews / sleep_custom_tags（IndexedDB，不触碰其他表）
  */
-/**
- * 早睡打卡模块（SleepModule）
- * - 每日打卡：睡眠目标 / 睡前状态 / 晨间反馈 / 早睡结果 / 晚睡原因 / 每日一句
- * - 连续挑战（3/7/14/30 天）、趋势图（Chart.js）、周/月复盘（个人复盘 + AI 复盘）
- * - AI 复盘通过 AIChatModule.askAI 委托调用，本模块全程不接触 API key
- * - 存储表：sleep_records / sleep_reviews / sleep_custom_tags（IndexedDB，不触碰其他表）
- */
 const SleepModule = (function () {
   'use strict';
 
@@ -10028,6 +10032,9 @@ const SleepModule = (function () {
   const BODY_STATES = ['头脑清醒', '精力充足', '情绪稳定', '身体轻松', '注意力提升', '状态一般', '仍然疲惫'];
   const NIGHT_BEHAVIORS = ['玩手机', '看视频', '工作太晚', '阅读', '拉伸', '冥想', '准备第二天计划'];
   const FAIL_REASONS = ['工作太晚', '手机时间过长', '社交活动', '情绪影响', '白天休息过多', '其他原因'];
+  /* 夜间苏醒：默认分类（仅记录选项，不代表系统判断为实际原因） */
+  const WAKE_REASONS = ['自然醒', '想上厕所', '口渴', '做梦', '环境声音', '温度不适', '身体不舒服', '情绪/压力', '手机/消息', '其他'];
+  const WAKE_ACTIONS = ['继续躺着', '看手机', '看时间', '喝水', '上厕所', '阅读', '起床活动', '其他'];
   const CHALLENGES = [3, 7, 14, 30];
   const WEEKLY_DISCLAIM = 'AI复盘：根据已有记录数据自动分析生成，仅作为参考，请结合个人实际情况判断。';
   const MONTHLY_DISCLAIM = 'AI复盘：根据已有数据分析生成，仅作为参考，不代表医疗建议或绝对判断。';
@@ -10044,7 +10051,11 @@ const SleepModule = (function () {
   async function addCustom(kind, name) { await DB.put('sleep_custom_tags', { id: kind + ':' + name, kind, name }); }
   async function delCustom(kind, name) { await DB.delete('sleep_custom_tags', kind + ':' + name); }
   async function allOptions(kind) {
-    const base = kind === 'body' ? BODY_STATES : kind === 'night' ? NIGHT_BEHAVIORS : FAIL_REASONS;
+    const base = kind === 'body' ? BODY_STATES
+      : kind === 'night' ? NIGHT_BEHAVIORS
+      : kind === 'wakeReason' ? WAKE_REASONS
+      : kind === 'wakeAction' ? WAKE_ACTIONS
+      : FAIL_REASONS;
     return base.concat(await loadCustom(kind));
   }
   async function loadReviews(kind) {
@@ -10072,6 +10083,7 @@ const SleepModule = (function () {
       wakeTime: '', sleepDuration: null, energyScore: null,
       morningStatus: '', bodyStates: [], morningNote: '', dailyLog: '',
       nightMood: null, nightStress: null, nightBehaviors: [],
+      nightWake: { woke: null, episodes: [] },   // 夜间苏醒记录（增量字段，旧记录无此字段时按空处理）
       createdAt: new Date().toISOString()
     };
   }
@@ -10157,11 +10169,22 @@ const SleepModule = (function () {
     return v <= t;
   }
 
+  /* 记录规范化：旧记录缺字段时在内存补默认结构（不修改库里原始数据，保存时才写入） */
+  function normalizeRec(rec) {
+    if (!rec) return rec;
+    if (!Array.isArray(rec.failReasons)) rec.failReasons = [];
+    if (!Array.isArray(rec.bodyStates)) rec.bodyStates = [];
+    if (!Array.isArray(rec.nightBehaviors)) rec.nightBehaviors = [];
+    if (!rec.nightWake || typeof rec.nightWake !== 'object') rec.nightWake = { woke: null, episodes: [] };
+    if (!Array.isArray(rec.nightWake.episodes)) rec.nightWake.episodes = [];
+    return rec;
+  }
+
   /* ================= 打卡页 ================= */
   async function renderCheckin() {
     const body = document.getElementById('sleep-body');
     if (!body) return;
-    if (!CK || !CK.date) { CK = (await getRecByDate(todayStr())) || newCheckin(todayStr()); }
+    if (!CK || !CK.date) { CK = normalizeRec((await getRecByDate(todayStr())) || newCheckin(todayStr())); }
     const st = computeStats(await loadRecords());
     body.innerHTML = await checkinHtml(st);
     syncDurationLabel();
@@ -10216,6 +10239,8 @@ const SleepModule = (function () {
       '<div class="sfield"><label>睡前行为（可多选）</label><div class="schips">' +
       nightBehaviors.map(t => tagChip(t, r.nightBehaviors.includes(t), 'SleepModule.toggleNightBehavior', 'night', r.nightBehaviors.includes(t) && !NIGHT_BEHAVIORS.includes(t))).join('') +
       addBtn('SleepModule.addTag(\'night\')') + '</div></div></div>';
+    /* 4 夜间苏醒记录（增量功能： woke=null 不展开；'no' 收起；'yes' 展开多次苏醒子记录） */
+    html += await wakeHtml(r);
     /* 5 晨间反馈 */
     html += '<div class="scard"><div class="sh-title">🌅 第二天晨间反馈</div>' +
       '<div class="sgrid2">' +
@@ -10238,6 +10263,59 @@ const SleepModule = (function () {
       '<button class="sbtn sbtn-primary sblock" onclick="SleepModule.saveCheckin()">💾 保存今日打卡</button></div>';
     return html;
   }
+  /* ================= 夜间苏醒记录（增量功能，独立子记录） ================= */
+  async function wakeHtml(r) {
+    const nw = r.nightWake || { woke: null, episodes: [] };   // 旧记录无此字段 → 按空处理，不报错
+    const reasonOpts = await allOptions('wakeReason');
+    const actionOpts = await allOptions('wakeAction');
+    let h = '<div class="scard"><div class="sh-title">🌙 半夜是否苏醒</div>' +
+      '<div class="ahint" style="margin-bottom:8px">夜间是否有过醒来（哪怕时间很短）？默认不选，选「没有」即记录本夜未苏醒。</div>' +
+      '<div class="srow">' +
+      '<button class="swake-pill yes' + (nw.woke === 'yes' ? ' on' : '') + '" onclick="SleepModule.setWake(\'yes\')">🟣 有</button>' +
+      '<button class="swake-pill no' + (nw.woke === 'no' ? ' on' : '') + '" onclick="SleepModule.setWake(\'no\')">🩷 没有</button>' +
+      '</div>';
+    if (nw.woke === 'no') {
+      h += '<div class="shint" style="margin-top:10px">本夜未记录到苏醒。</div>';
+    } else if (nw.woke === 'yes') {
+      const eps = nw.episodes || [];
+      eps.forEach((ep, i) => { h += episodeHtml(i, ep, eps.length, reasonOpts, actionOpts); });
+      h += '<div class="srow" style="margin-top:12px">' +
+        '<button class="sbtn ssm" onclick="SleepModule.addEpisode()">＋ 添加一次苏醒</button>' +
+        '<span class="shint">一晚多次苏醒可分别记录</span></div>';
+    }
+    h += '</div>';
+    return h;
+  }
+  function episodeHtml(i, ep, total, reasonOpts, actionOpts) {
+    ep.reasons = ep.reasons || []; ep.actions = ep.actions || [];
+    let h = '<div class="sep-card">' +
+      '<div class="sep-head"><span class="sep-badge">第 ' + (i + 1) + ' 次苏醒</span>' +
+      (total > 1 ? '<button class="sep-del" onclick="SleepModule.delEpisode(' + i + ')">删除本次</button>' : '') +
+      '</div>' +
+      '<div class="sgrid2">' +
+      '<div class="sfield"><label>苏醒时间</label>' +
+      '<input type="time" class="sinput" value="' + esc(ep.time || '') + '" onchange="SleepModule.setEp(' + i + ',\'time\',this.value)"></div>' +
+      '<div class="sfield"><label>再次入睡时间（可选）</label>' +
+      '<input type="time" class="sinput" value="' + esc(ep.reSleepTime || '') + '" onchange="SleepModule.setEp(' + i + ',\'reSleepTime\',this.value)"></div>' +
+      '</div>' +
+      '<div class="sfield"><label>可能因为什么苏醒？（可多选，仅作记录）</label><div class="schips">' +
+      reasonOpts.map(t => epChip(t, ep.reasons.includes(t), i, 'reasons', 'wakeReason', ep.reasons.includes(t) && !WAKE_REASONS.includes(t))).join('') +
+      addBtn('SleepModule.addTag(\'wakeReason\')') + '</div></div>' +
+      '<div class="sfield"><label>具体情况（自由输入）</label>' +
+      '<input class="sinput" value="' + esc(ep.reasonNote || '') + '" placeholder="补充说明可能的原因…" oninput="SleepModule.setEpNote(' + i + ',\'reasonNote\',this.value)"></div>' +
+      '<div class="sfield"><label>苏醒之后有去做什么？（可多选）</label><div class="schips">' +
+      actionOpts.map(t => epChip(t, ep.actions.includes(t), i, 'actions', 'wakeAction', ep.actions.includes(t) && !WAKE_ACTIONS.includes(t))).join('') +
+      addBtn('SleepModule.addTag(\'wakeAction\')') + '</div></div>' +
+      '<div class="sfield"><label>具体行为（自由输入）</label>' +
+      '<input class="sinput" value="' + esc(ep.actionNote || '') + '" placeholder="补充说明做了什么…" oninput="SleepModule.setEpNote(' + i + ',\'actionNote\',this.value)"></div>' +
+      '</div>';
+    return h;
+  }
+  function epChip(name, on, idx, field, kind, deletable) {
+    return '<span class="schip' + (on ? ' on' : '') + '" onclick="SleepModule.toggleEpArr(' + idx + ',\'' + field + '\',\'' + esc(name) + '\')">' + esc(name) +
+      (deletable ? '<i class="schip-x" onclick="event.stopPropagation();SleepModule.delTag(\'' + kind + '\',\'' + esc(name) + '\')">×</i>' : '') +
+      '</span>';
+  }
   function timeField(label, field, val, handler) {
     return '<div class="sfield"><label>' + esc(label) + '</label>' +
       '<input type="time" class="sinput" value="' + esc(val || '') + '" onchange="' + handler + '(\'' + field + '\',this.value)"></div>';
@@ -10259,7 +10337,7 @@ const SleepModule = (function () {
   /* ---------- 打卡交互 ---------- */
   async function onCkDate(v) {
     if (!v) return;
-    CK = (await getRecByDate(v)) || newCheckin(v);
+    CK = normalizeRec((await getRecByDate(v)) || newCheckin(v));
     _manualSuccess = CK.success != null && !!(CK._manual);
     await renderCheckin();
   }
@@ -10285,6 +10363,26 @@ const SleepModule = (function () {
   }
   function setMStatus(m) { CK.morningStatus = m; rerender(); }
   function setNote(field, v) { CK[field] = v; }
+  /* ---------- 夜间苏醒交互 ---------- */
+  function nw() { if (!CK.nightWake) CK.nightWake = { woke: null, episodes: [] }; if (!CK.nightWake.episodes) CK.nightWake.episodes = []; return CK.nightWake; }
+  function setWake(v) {
+    const w = nw();
+    w.woke = (w.woke === v) ? null : v;   // 再点一次同选项 = 取消选择，恢复未选
+    if (w.woke === 'yes' && !w.episodes.length) w.episodes.push(newEpisode());
+    rerender();
+  }
+  function newEpisode() { return { time: '', reasons: [], actions: [], reasonNote: '', actionNote: '', reSleepTime: '' }; }
+  function addEpisode() { nw().episodes.push(newEpisode()); rerender(); }
+  function delEpisode(i) { nw().episodes.splice(i, 1); if (!nw().episodes.length && nw().woke === 'yes') nw().episodes.push(newEpisode()); rerender(); }
+  function setEp(i, field, v) { const eps = nw().episodes; if (eps[i]) eps[i][field] = v || ''; }
+  function setEpNote(i, field, v) { const eps = nw().episodes; if (eps[i]) eps[i][field] = v; }
+  function toggleEpArr(i, field, v) {
+    const ep = nw().episodes[i];
+    if (!ep) return;
+    ep[field] = ep[field] || [];
+    arrToggle(ep[field], v);
+    rerender();
+  }
   function arrToggle(arr, v) { const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
   function rerender() { renderCheckin(); }
   function syncDurationLabel() {
@@ -10308,12 +10406,17 @@ const SleepModule = (function () {
     if (kind === 'fail') arrToggle(CK.failReasons, name);
     if (kind === 'night') arrToggle(CK.nightBehaviors, name);
     if (kind === 'body') arrToggle(CK.bodyStates, name);
+    if ((kind === 'wakeReason' || kind === 'wakeAction') && CK.nightWake && CK.nightWake.episodes) {
+      const field = kind === 'wakeReason' ? 'reasons' : 'actions';
+      CK.nightWake.episodes.forEach(ep => { if (ep[field]) arrToggle(ep[field], name); });
+    }
     stoast('已删除：' + name);
     rerender();
   }
   async function saveCheckin() {
     if (!CK.date) { stoast('请先选择日期', 'err'); return; }
     CK.sleepDuration = calcDuration(CK.sleepTime, CK.wakeTime);
+    nw();   // 旧记录无 nightWake 字段时补默认结构（不修改其他已有字段）
     const existing = await getRecByDate(CK.date);
     if (existing) {
       CK.id = existing.id;
@@ -10569,6 +10672,23 @@ const SleepModule = (function () {
     if (r.nightStress != null) parts.push('睡前压力' + r.nightStress);
     if (r.nightBehaviors && r.nightBehaviors.length) parts.push('睡前行为[' + r.nightBehaviors.join('、') + ']');
     if (r.dailyLog) parts.push('一句:' + r.dailyLog);
+    /* 夜间苏醒（增量数据：旧记录无此字段时跳过，不报错） */
+    if (r.nightWake && r.nightWake.woke === 'yes' && r.nightWake.episodes && r.nightWake.episodes.length) {
+      const eps = r.nightWake.episodes;
+      parts.push('夜间苏醒' + eps.length + '次');
+      eps.forEach((ep, j) => {
+        const seg = [];
+        if (ep.time) seg.push('苏醒' + ep.time);
+        if (ep.reasons && ep.reasons.length) seg.push('可能原因[' + ep.reasons.join('、') + ']');
+        if (ep.reasonNote) seg.push('原因详情:' + ep.reasonNote);
+        if (ep.actions && ep.actions.length) seg.push('苏醒后行为[' + ep.actions.join('、') + ']');
+        if (ep.actionNote) seg.push('行为详情:' + ep.actionNote);
+        if (ep.reSleepTime) seg.push('再入睡' + ep.reSleepTime);
+        if (seg.length) parts.push('苏醒' + (j + 1) + '（' + seg.join('，') + '）');
+      });
+    } else if (r.nightWake && r.nightWake.woke === 'no') {
+      parts.push('夜间未苏醒');
+    }
     return '- ' + parts.join('，');
   }
   function statsSummary(st) {
@@ -10598,16 +10718,17 @@ const SleepModule = (function () {
       const recs = (await loadRecords()).filter(r => r.date >= review.start && r.date <= review.end).sort((a, b) => a.date < b.date ? -1 : 1);
       const st = computeStats(recs);
       const isW = review.kind === 'weekly';
-      const sys = '你是一位温和、专业的睡眠习惯分析助手。你只根据用户提供的数据做分析，不做医疗诊断，不下绝对结论，语气友好、具体、以鼓励为主。输出使用简体中文和 Markdown 格式（用 ## 二级标题分节）。';
+      const sys = '你是一位温和、专业的睡眠习惯分析助手。你只根据用户提供的数据做分析，不做医疗诊断，不下绝对结论，语气友好、具体、以鼓励为主。输出使用简体中文和 Markdown 格式（用 ## 二级标题分节）。' +
+        '特别注意：分析夜间苏醒数据时，只能描述记录中出现的频率、时间分布与同时出现的现象，严禁把相关性判断为因果关系——不得说"你因为玩手机所以半夜醒来"这类确定归因，应表述为"从已有记录来看，玩手机的夜晚与夜间苏醒同时出现的情况较多，可能值得继续观察"。';
       const structure = isW
-        ? '## 一、睡眠趋势分析\n（入睡时间变化、起床规律变化、睡眠稳定性）\n## 二、行为分析\n（影响早睡成功的因素、晚睡主要原因）\n## 三、状态变化分析\n（精力变化趋势、情绪变化趋势、效率变化趋势）\n## 四、下周优化建议\n（下周睡眠优化建议、可以尝试的小调整）'
-        : '## 一、睡眠习惯变化总结\n## 二、长期趋势分析\n## 三、成功因素分析\n## 四、影响因素分析\n## 五、下一阶段优化建议';
+        ? '## 一、睡眠趋势分析\n（入睡时间变化、起床规律变化、睡眠稳定性）\n## 二、夜间苏醒分析\n（苏醒频率、苏醒时间分布、常见记录原因、苏醒后行为、再次入睡情况；如数据中有夜间苏醒与次日精力/状态的记录，只描述变化与可能关联，不下因果结论；如无苏醒记录数据则简要说明）\n## 三、行为分析\n（影响早睡成功的因素、晚睡主要原因）\n## 四、状态变化分析\n（精力变化趋势、情绪变化趋势、效率变化趋势）\n## 五、下周优化建议\n（下周睡眠优化建议、可以尝试的小调整）'
+        : '## 一、睡眠习惯变化总结\n## 二、夜间苏醒分析\n（一个月内苏醒频率与时间分布变化、常见记录原因、苏醒后行为、再次入睡情况；只描述记录中的变化与可能关联，不下因果结论；如无苏醒记录数据则简要说明）\n## 三、长期趋势分析\n## 四、成功因素分析\n## 五、影响因素分析\n## 六、下一阶段优化建议';
       const user = '请根据以下' + (isW ? '一周' : '一个月') + '早睡打卡数据生成' + (isW ? '周' : '月度') + '复盘分析。\n\n' +
         '【周期】' + review.start + ' ~ ' + review.end + '\n' +
         '【统计】' + statsSummary(st) + '\n' +
         '【逐日记录】\n' + recs.map(daySummaryLine).join('\n') + '\n\n' +
         '【用户的个人复盘（主观记录，优先尊重）】\n' + personalSummary(review, isW) + '\n\n' +
-        '请严格按以下结构输出，全文不超过 700 字：\n' + structure + '\n\n' +
+        '请严格按以下结构输出，全文不超过 800 字：\n' + structure + '\n\n' +
         '最后另起一行单独输出这句话：' + AI_TAIL;
       const res = await AIChatModule.askAI([{ role: 'system', content: sys }, { role: 'user', content: user }]);
       review.aiContent = (res.text || '').trim();
@@ -10666,24 +10787,36 @@ const SleepModule = (function () {
     T.push(['T12 md 渲染标题', mdToHtml('## 标题').includes('smd-h2')]);
     T.push(['T13 md 渲染转义（防注入）', mdToHtml('<scr' + 'ipt>').includes('&lt;scr' + 'ipt&gt;')]);
     T.push(['T14 streaks 断档中断（09-05 未记，09-06 成功）', streaks(recs.concat([{ date: '2026-09-06', success: true }])).max === 2]);
+    /* 夜间苏醒（增量功能验收） */
+    const wkRec = { date: '2026-09-10', nightWake: { woke: 'yes', episodes: [
+      { time: '02:30', reasons: ['做梦', '口渴'], actions: ['看手机', '喝水'], reasonNote: '梦到工作', actionNote: '', reSleepTime: '03:10' },
+      { time: '05:00', reasons: ['自然醒'], actions: ['继续躺着'], reasonNote: '', actionNote: '', reSleepTime: '' }
+    ] } };
+    const noRec = { date: '2026-09-11', nightWake: { woke: 'no', episodes: [] } };
+    const legacyRec = { date: '2026-09-12' };   // 旧记录：无 nightWake 字段
+    const wkLine = daySummaryLine(wkRec), noLine = daySummaryLine(noRec), lgLine = daySummaryLine(legacyRec);
+    T.push(['T15 苏醒数据进 AI 逐日摘要（次数/原因/行为/再入睡）', wkLine.includes('夜间苏醒2次') && wkLine.includes('可能原因[做梦、口渴]') && wkLine.includes('苏醒后行为[看手机、喝水]') && wkLine.includes('再入睡03:10')]);
+    T.push(['T16 未苏醒记录进摘要', noLine.includes('夜间未苏醒')]);
+    T.push(['T17 旧记录无 nightWake 字段不报错且不输出苏醒', !lgLine.includes('苏醒')]);
+    T.push(['T18 苏醒自由输入进摘要', wkLine.includes('原因详情:梦到工作')]);
     return T;
   }
 
   /* ================= 对外暴露 ================= */
   return {
-    render, sub, _VERSION: '2026-09-09-早睡打卡模块',
+    render, sub, _VERSION: '2026-09-10-夜间苏醒记录',
     onCkDate, setDayType, setT, setSuccess, setScore, setMStatus, setNote,
     toggleFailReason, toggleNightBehavior, toggleBodyState,
     addTag, delTag, saveCheckin,
     setRVKind, setRVStart, savePersonal, runAI,
+    setWake, addEpisode, delEpisode, setEp, setEpNote, toggleEpArr,
     _closeModal, getState, runAcceptanceTests
   };
 })();
 
-/* 挂载到 window（供 onclick 调用） */
-if (typeof window !== 'undefined') {
-  window.SleepModule = SleepModule;
-}
+window.SleepModule = SleepModule;
+
+
 </script>
 </body>
 </html>
