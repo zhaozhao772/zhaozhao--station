@@ -11,7 +11,7 @@
 
 // ============ 常量定义（固定身份，不得随意修改） ============
 const DB_NAME = 'zhaozhao_station_db';       // 固定数据库名
-const DB_VERSION = 2;                          // 数据版本号（v2 新增 angel_* 表）
+const DB_VERSION = 3;                          // 数据版本号（v2 新增 angel_* 表；v3 新增 sleep_* 表）
 const LS_PREFIX = 'zhaozhao_';                 // localStorage 键前缀
 const BACKUP_PREFIX = 'zhaozhao_backup_';      // 备份键前缀
 
@@ -55,6 +55,9 @@ const STORE_DEFS = [
   { name: 'angel_personal',  keyPath: 'id' },            // 天使数字·私人约定
   { name: 'angel_dict',      keyPath: 'key' },           // 天使数字·词典编辑记录（key: digit:/aspect:/pair:/narr:）
   { name: 'angel_custom_tags', keyPath: 'id' },          // 天使数字·自定义动向标签
+  { name: 'sleep_records',   keyPath: 'id' },            // 早睡打卡·每日记录（一天一条，date 唯一）
+  { name: 'sleep_reviews',   keyPath: 'id' },            // 早睡打卡·周期复盘（id: weekly:起始日 / monthly:年-月）
+  { name: 'sleep_custom_tags', keyPath: 'id' },          // 早睡打卡·自定义分类（id: kind:name）
 ];
 
 // ============ 工具函数 ============
