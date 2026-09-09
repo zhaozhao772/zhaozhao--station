@@ -325,6 +325,8 @@ const SleepModule = (function () {
       addBtn('SleepModule.addTag(\'wakeAction\')') + '</div></div>' +
       '<div class="sfield"><label>具体行为（自由输入）</label>' +
       '<input class="sinput" value="' + esc(ep.actionNote || '') + '" placeholder="补充说明做了什么…" oninput="SleepModule.setEpNote(' + i + ',\'actionNote\',this.value)"></div>' +
+      '<div class="sfield"><label>再次入睡前有去做了什么？（自由输入）</label>' +
+      '<textarea class="stextarea" rows="2" placeholder="记录再次入睡前做了什么……" oninput="SleepModule.setEpNote(' + i + ',\'reSleepNote\',this.value)">' + esc(ep.reSleepNote || '') + '</textarea></div>' +
       '</div>';
     return h;
   }
@@ -388,7 +390,7 @@ const SleepModule = (function () {
     if (w.woke === 'yes' && !w.episodes.length) w.episodes.push(newEpisode());
     rerender();
   }
-  function newEpisode() { return { time: '', reasons: [], actions: [], reasonNote: '', actionNote: '', reSleepTime: '' }; }
+  function newEpisode() { return { time: '', reasons: [], actions: [], reasonNote: '', actionNote: '', reSleepTime: '', reSleepNote: '' }; }
   function addEpisode() { nw().episodes.push(newEpisode()); rerender(); }
   function delEpisode(i) { nw().episodes.splice(i, 1); if (!nw().episodes.length && nw().woke === 'yes') nw().episodes.push(newEpisode()); rerender(); }
   function setEp(i, field, v) { const eps = nw().episodes; if (eps[i]) eps[i][field] = v || ''; }
@@ -701,6 +703,7 @@ const SleepModule = (function () {
         if (ep.actions && ep.actions.length) seg.push('苏醒后行为[' + ep.actions.join('、') + ']');
         if (ep.actionNote) seg.push('行为详情:' + ep.actionNote);
         if (ep.reSleepTime) seg.push('再入睡' + ep.reSleepTime);
+        if (ep.reSleepNote) seg.push('入睡前经过:' + ep.reSleepNote);
         if (seg.length) parts.push('苏醒' + (j + 1) + '（' + seg.join('，') + '）');
       });
     } else if (r.nightWake && r.nightWake.woke === 'no') {
@@ -806,22 +809,25 @@ const SleepModule = (function () {
     T.push(['T14 streaks 断档中断（09-05 未记，09-06 成功）', streaks(recs.concat([{ date: '2026-09-06', success: true }])).max === 2]);
     /* 夜间苏醒（增量功能验收） */
     const wkRec = { date: '2026-09-10', nightWake: { woke: 'yes', episodes: [
-      { time: '02:30', reasons: ['做梦', '口渴'], actions: ['看手机', '喝水'], reasonNote: '梦到工作', actionNote: '', reSleepTime: '03:10' },
-      { time: '05:00', reasons: ['自然醒'], actions: ['继续躺着'], reasonNote: '', actionNote: '', reSleepTime: '' }
+      { time: '02:30', reasons: ['做梦', '口渴'], actions: ['看手机', '喝水'], reasonNote: '梦到工作', actionNote: '', reSleepTime: '03:10', reSleepNote: '看了一会儿手机后慢慢重新睡着' },
+      { time: '05:00', reasons: ['自然醒'], actions: ['继续躺着'], reasonNote: '', actionNote: '', reSleepTime: '', reSleepNote: '' }
     ] } };
     const noRec = { date: '2026-09-11', nightWake: { woke: 'no', episodes: [] } };
     const legacyRec = { date: '2026-09-12' };   // 旧记录：无 nightWake 字段
-    const wkLine = daySummaryLine(wkRec), noLine = daySummaryLine(noRec), lgLine = daySummaryLine(legacyRec);
+    const legacyEpRec = { date: '2026-09-13', nightWake: { woke: 'yes', episodes: [{ time: '03:00', reasons: ['做梦'], actions: ['看手机'], reasonNote: '', actionNote: '看了下时间', reSleepTime: '03:30' }] } };  // 旧苏醒记录：无 reSleepNote 字段
+    const wkLine = daySummaryLine(wkRec), noLine = daySummaryLine(noRec), lgLine = daySummaryLine(legacyRec), lgEpLine = daySummaryLine(legacyEpRec);
     T.push(['T15 苏醒数据进 AI 逐日摘要（次数/原因/行为/再入睡）', wkLine.includes('夜间苏醒2次') && wkLine.includes('可能原因[做梦、口渴]') && wkLine.includes('苏醒后行为[看手机、喝水]') && wkLine.includes('再入睡03:10')]);
     T.push(['T16 未苏醒记录进摘要', noLine.includes('夜间未苏醒')]);
     T.push(['T17 旧记录无 nightWake 字段不报错且不输出苏醒', !lgLine.includes('苏醒')]);
     T.push(['T18 苏醒自由输入进摘要', wkLine.includes('原因详情:梦到工作')]);
+    T.push(['T19 再次入睡前经过进 AI 摘要', wkLine.includes('入睡前经过:看了一会儿手机后慢慢重新睡着')]);
+    T.push(['T20 旧苏醒记录无 reSleepNote 字段不报错且其他字段正常', lgEpLine.includes('苏醒后行为[看手机]') && lgEpLine.includes('再入睡03:30') && !lgEpLine.includes('入睡前经过')]);
     return T;
   }
 
   /* ================= 对外暴露 ================= */
   return {
-    render, sub, _VERSION: '2026-09-10-夜间苏醒记录',
+    render, sub, _VERSION: '2026-09-10-再次入睡前行为记录',
     onCkDate, setDayType, setT, setSuccess, setScore, setMStatus, setNote,
     toggleFailReason, toggleNightBehavior, toggleBodyState,
     addTag, delTag, saveCheckin,
