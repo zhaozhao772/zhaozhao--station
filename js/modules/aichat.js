@@ -699,6 +699,20 @@ const AIChatModule = {
     }
   },
 
+  // ============ 供其他模块调用的通用 AI 问答 ============
+  // 安全说明：不向调用方暴露 API key —— 连接选择与解密均在本模块内部完成，
+  // 调用方只传入 messages，返回 { text, model, provider }
+  async askAI(messages, opts = {}) {
+    const enabled = await DB.getSetting('enable_ai');
+    if (!enabled) throw new Error('AI 功能未开启，请先在「跨维沟通」或设置中开启');
+    const connections = (await DB.list('ai_connections')).filter(c => !c.deleted_at);
+    if (!connections.length) throw new Error('没有可用的 AI 连接，请先在「跨维沟通」中配置');
+    const conn = (opts.connId ? connections.find(c => c.id === opts.connId) : null) || connections[0];
+    const apiKey = conn.api_key_encrypted ? await this._decryptKey(conn.api_key_encrypted) : '';
+    const text = await this._callAPI(conn, messages, apiKey, opts);
+    return { text, model: conn.model, provider: conn.provider };
+  },
+
   // ============ 多供应商 API 调用（含流式）============
   async _callAPI(conn, messages, apiKey, opts = {}) {
     if (opts.stream) {
