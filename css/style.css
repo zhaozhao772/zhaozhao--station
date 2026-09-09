@@ -1067,6 +1067,17 @@ mark {
 .sleep .smd-h3{font-weight:700;color:var(--color-text);margin:8px 0 3px;font-size:13.5px}
 .sleep .smd-li{padding-left:12px;margin:2px 0}
 
+/* 夜间苏醒记录 */
+.sleep .swake-pill{padding:7px 18px;border-radius:999px;border:1px solid var(--color-border);background:rgba(255,255,255,.7);font-size:13px;cursor:pointer;transition:all .15s;user-select:none}
+.sleep .swake-pill:hover{border-color:var(--color-rose-soft)}
+.sleep .swake-pill.yes.on{background:linear-gradient(135deg,#c4b5fd,#8b5cf6);color:#fff;border-color:transparent;font-weight:700}
+.sleep .swake-pill.no.on{background:linear-gradient(135deg,#f0a4c4,#e879a6);color:#fff;border-color:transparent;font-weight:700}
+.sleep .sep-card{border:1px solid rgba(139,92,246,.22);border-left:3px solid #8b5cf6;border-radius:12px;padding:12px 12px 4px;margin-top:12px;background:rgba(139,92,246,.04)}
+.sleep .sep-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sleep .sep-badge{font-size:12px;font-weight:700;color:#8b5cf6;background:rgba(139,92,246,.1);padding:3px 10px;border-radius:999px}
+.sleep .sep-del{font-size:12px;color:#c05552;background:none;border:none;cursor:pointer;padding:3px 8px;border-radius:8px}
+.sleep .sep-del:hover{background:rgba(217,83,79,.08)}
+
 /* 全局 toast / modal（挂 body，不能带 .sleep 前缀！） */
 .stoast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(74,59,69,.92);color:#fff;padding:10px 20px;border-radius:999px;font-size:14px;z-index:9999;transition:transform .3s;max-width:86vw;text-align:center}
 .stoast.show{transform:translateX(-50%) translateY(0)}
