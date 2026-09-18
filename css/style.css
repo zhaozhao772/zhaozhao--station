@@ -299,7 +299,28 @@ ul, ol { list-style: none; }
 }
 .tag-chip.active::before { content: '✓ '; font-weight: 700; }
 
-/* ============ 工具类 ============ */
+/* ============ 字卡传讯：卡组删除 / 批量编辑 ============ */
+/* 卡组列表项右侧删除按钮 */
+.cards-deck-del {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  border-color: var(--color-border);
+  background: transparent;
+}
+.cards-deck-del:hover { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+
+/* 多选模式下被选中的字卡：粉色高亮（与粉紫主题一致） */
+.cards-chip--sel,
+.cards-deck-cards .tag-chip.active {
+  background: linear-gradient(135deg, var(--color-rose-soft), var(--color-rose));
+  border-color: var(--color-rose);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(241,148,166,.4);
+}
+.cards-deck-cards .tag-chip { padding: 8px 14px; }
+
+/* 工具类 */
 .grid { display: grid; gap: 16px; }
 .book-icon {
   display: inline-flex;
