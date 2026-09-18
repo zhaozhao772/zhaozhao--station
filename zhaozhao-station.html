@@ -325,6 +325,45 @@ ul, ol { list-style: none; }
 }
 .cards-deck-cards .tag-chip { padding: 8px 14px; }
 
+/* ============ 字卡传讯：新增字卡 / 自由补充 ============ */
+.cards-deck-add {
+  background: linear-gradient(135deg, var(--color-wisteria), var(--color-rose));
+  color: #fff; border-color: transparent; font-weight: 600;
+  box-shadow: 0 2px 10px rgba(187,164,217,.35);
+}
+.cards-deck-add:hover {
+  background: linear-gradient(135deg, var(--color-rose), var(--color-accent));
+  border-color: transparent; color: #fff;
+  box-shadow: 0 4px 16px rgba(241,148,166,.45);
+}
+.cards-chip__dot {
+  margin-left: 5px; font-weight: 900; font-size: 16px; line-height: 1;
+  vertical-align: middle; opacity: .85;
+}
+.cards-card-detail__word {
+  font-size: 22px; font-weight: 700; color: var(--color-primary);
+  text-align: center; padding: 16px 14px; margin-bottom: 4px;
+  border-radius: var(--radius-md, 14px);
+  background: linear-gradient(135deg, var(--color-rose-soft), rgba(187,164,217,.45));
+  letter-spacing: 1px;
+}
+.cards-card-detail .textarea { min-height: 84px; }
+.cards-card-detail__opt {
+  font-size: var(--font-size-xs); font-weight: 400;
+  color: var(--color-text-faint); margin-left: 4px;
+}
+.cards-card-detail__saved {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; margin-top: 4px;
+  border-radius: var(--radius-sm, 10px);
+  background: rgba(187,164,217,.14);
+  border: 1px dashed var(--color-wisteria);
+}
+.cards-card-detail__saved-tag {
+  font-size: var(--font-size-xs); font-weight: 600;
+  color: var(--color-wisteria); white-space: nowrap;
+}
+
 /* ============ 工具类 ============ */
 .grid { display: grid; gap: 16px; }
 .book-icon {
@@ -5693,11 +5732,17 @@ const CardsModule = {
   _renderDeckModal(deck, items) {
     const edit = this._editMode;
     const sel = this._selected;
+    // 已填写「自由补充」的字卡数量，用于顶部提示
+    const filled = items.filter(i => (i.supplement || '').trim()).length;
     const body = `
       <p class="text-soft text-sm mb-3">${deck.description || ''}</p>
       <div class="flex justify-between items-center mb-3 cards-deck-toolbar">
-        <span class="text-faint text-xs">${edit ? `已选 ${sel.size} / ${items.length} 张` : `共 ${items.length} 张字卡`}</span>
+        <span class="text-faint text-xs">${
+          edit ? `已选 ${sel.size} / ${items.length} 张`
+               : `共 ${items.length} 张字卡${filled > 0 ? ` · 已补充 ${filled} 张` : ''}`
+        }</span>
         <div class="flex gap-2">
+          ${edit ? '' : `<button class="btn btn--sm cards-deck-add" onclick="CardsModule.addCard()">+ 新增字卡</button>`}
           <button class="btn btn--sm ${edit ? 'btn--primary' : ''}" onclick="CardsModule.toggleEditAll()">编辑全部</button>
           <button class="btn btn--sm btn--accent" onclick="CardsModule.deckDeleteSelected()">删除</button>
         </div>
@@ -5707,11 +5752,14 @@ const CardsModule = {
           ${items.map(i => `
             <span class="tag-chip ${edit && sel.has(i.id) ? 'active cards-chip--sel' : ''}"
                   data-card-id="${i.id}"
-                  onclick="CardsModule.onChipClick('${i.id}')">${i.word}</span>
+                  title="${edit ? '点击选中/取消' : '点击查看与补充'}"
+                  onclick="CardsModule.onChipClick('${i.id}')">${i.word}${!edit && (i.supplement || '').trim() ? '<span class="cards-chip__dot" aria-hidden="true">·</span>' : ''}</span>
           `).join('')}
         </div>
       `}
-      ${edit ? `<p class="text-faint text-xs mb-2">多选模式：点击字卡可选中/取消；再点「编辑全部」退出编辑</p>` : ''}
+      ${edit
+        ? `<p class="text-faint text-xs mb-2">多选模式：点击字卡可选中/取消；再点「编辑全部」退出编辑</p>`
+        : `<p class="text-faint text-xs mb-2">点击任意字卡可查看原文并写下「自由补充」与填写原因${filled > 0 ? '；带 · 的字卡表示已补充' : ''}</p>`}
       <div class="flex gap-3 mt-2" style="justify-content:flex-end">
         ${edit
           ? `<button class="btn btn--sm" onclick="CardsModule.toggleEditAll()">完成编辑</button>`
@@ -5739,9 +5787,9 @@ const CardsModule = {
     await this._rerenderDeckModal();
   },
 
-  /* 点击字卡：编辑模式下切换选中 */
+  /* 点击字卡：编辑模式下切换选中；非编辑模式打开字卡详情（自由补充） */
   async onChipClick(cardId) {
-    if (!this._editMode) return;   // 非编辑模式不做任何事
+    if (!this._editMode) { await this.openCard(cardId); return; }
     if (this._selected.has(cardId)) this._selected.delete(cardId);
     else this._selected.add(cardId);
     await this._rerenderDeckModal();
@@ -5752,6 +5800,151 @@ const CardsModule = {
     if (!deck) return;
     const items = (await DB.list('card_items')).filter(i => !i.deleted_at && i.deck_id === this._deckId);
     this._renderDeckModal(deck, items);
+  },
+
+  /* ============ 新增字卡 ============ */
+  async addCard() {
+    if (this._editMode) {
+      UI.toast('多选模式下无法新增，请先点「编辑全部」退出编辑','info');
+      return;
+    }
+    UI.modal('新增字卡', `
+      <div class="field">
+        <label class="field__label">字卡内容</label>
+        <input class="input" id="cardNewWord" placeholder="如：温柔、等待、被理解…" maxlength="40">
+        <div class="field__hint">简短的一个词或一句话即可</div>
+      </div>
+      <div class="flex gap-3" style="justify-content:flex-end">
+        <button class="btn" onclick="UI.closeModal();CardsModule._reopenDeckModal()">取消</button>
+        <button class="btn btn--primary" onclick="CardsModule._saveNewCard()">保存</button>
+      </div>
+    `, { closeOnOutside: false });
+    const input = document.getElementById('cardNewWord');
+    if (input) {
+      setTimeout(() => input.focus(), 50);
+      // 回车即保存
+      input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); this._saveNewCard(); } };
+    }
+  },
+
+  async _saveNewCard() {
+    const el = document.getElementById('cardNewWord');
+    const word = el ? el.value.trim() : '';
+    if (!word) { UI.toast('请输入字卡内容','error'); return; }
+    if (word.length > 40) { UI.toast('字卡内容请控制在 40 字以内','error'); return; }
+
+    const deck = await DB.get('card_decks', this._deckId);
+    if (!deck) { UI.toast('卡组不存在','error'); return; }
+    const exist = (await DB.list('card_items'))
+      .filter(i => !i.deleted_at && i.deck_id === this._deckId && (i.word || '').trim() === word);
+
+    // 同名字卡不阻塞，但给一次确认，避免误重复
+    if (exist.length > 0) {
+      const ok = await UI.confirm(`这个卡组里已经有「${word}」了，仍要再添加一张吗？`, { title: '字卡重复', okText: '仍要添加' });
+      // 取消：把用户填的内容带回来，不丢输入
+      if (!ok) { await this._sleep(120); await this._reopenAddModal(word); return; }
+    }
+
+    await DB.save('card_items', {
+      deck_id: this._deckId,
+      word,
+      interpretation: '',
+      supplement: '',
+      supplement_reason: '',
+    });
+    UI.toast('字卡已添加','success');
+    await this._sleep(120);
+    this._renderDeckModal(await DB.get('card_decks', this._deckId),
+      (await DB.list('card_items')).filter(i => !i.deleted_at && i.deck_id === this._deckId));
+    this.render();
+  },
+
+  /* 取消新增后把输入框带回来，避免用户重打一遍 */
+  async _reopenAddModal(preset = '') {
+    await this.addCard();
+    const el = document.getElementById('cardNewWord');
+    if (el && preset) el.value = preset;
+  },
+
+  /* ============ 字卡详情：原文 / 自由补充 / 填写原因 ============ */
+  async openCard(cardId) {
+    const card = await DB.get('card_items', cardId);
+    if (!card || card.deleted_at) { UI.toast('字卡不存在','error'); return; }
+    this._cardId = cardId;
+    await this._renderCardModal(card);
+  },
+
+  async _renderCardModal(card) {
+    const supp = card.supplement || '';
+    const reason = card.supplement_reason || '';
+    const hasSupp = supp.trim().length > 0;
+    UI.modal('字卡详情', `
+      <div class="cards-card-detail">
+        <div class="cards-card-detail__word">${card.word}</div>
+        <div class="text-faint text-xs mb-3">${card.created_at ? `创建于 ${String(card.created_at).slice(0,10)}` : ''}</div>
+
+        <div class="field">
+          <label class="field__label">字卡内容</label>
+          <input class="input" id="cardEditWord" value="${this._esc(card.word)}" maxlength="40">
+          <div class="field__hint">可修改字卡原文，修改后不会影响已保存的抽卡记录</div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">自由补充 <span class="cards-card-detail__opt">可留空</span></label>
+          <textarea class="textarea" id="cardSupplement" maxlength="1000"
+            placeholder="看到这张字卡，你想补充些什么？（感受、联想、给自己的话…）">${this._esc(supp)}</textarea>
+        </div>
+
+        <div class="field">
+          <label class="field__label">填写原因 <span class="cards-card-detail__opt">可留空</span></label>
+          <textarea class="textarea" id="cardReason" maxlength="500" style="min-height:70px"
+            placeholder="我为什么写下这段补充？（例如：因为今天发生了…／因为我想提醒自己…）">${this._esc(reason)}</textarea>
+          <div class="field__hint">记录当时的原因，以后回看时更容易理解自己的心境</div>
+        </div>
+
+        ${hasSupp ? `<div class="cards-card-detail__saved">
+          <span class="cards-card-detail__saved-tag">上次已补充</span>
+          <span class="text-faint text-xs">${card.updated_at ? `更新于 ${String(card.updated_at).slice(0,16).replace('T',' ')}` : ''}</span>
+        </div>` : ''}
+      </div>
+      <div class="flex gap-2 mt-3" style="justify-content:flex-end">
+        <button class="btn btn--sm" onclick="UI.closeModal();CardsModule._reopenDeckModal()">返回卡组</button>
+        <button class="btn btn--primary btn--sm" onclick="CardsModule.saveCardDetail()">保存</button>
+      </div>
+    `, { closeOnOutside: false });
+  },
+
+  async saveCardDetail() {
+    const card = await DB.get('card_items', this._cardId);
+    if (!card || card.deleted_at) { UI.toast('字卡不存在','error'); return; }
+    const wordEl = document.getElementById('cardEditWord');
+    const suppEl = document.getElementById('cardSupplement');
+    const reasonEl = document.getElementById('cardReason');
+    const word = wordEl ? wordEl.value.trim() : '';
+    if (!word) { UI.toast('字卡内容不能为空','error'); return; }
+
+    card.word = word;
+    card.supplement = suppEl ? suppEl.value.trim() : '';
+    card.supplement_reason = reasonEl ? reasonEl.value.trim() : '';
+    await DB.save('card_items', card);
+    UI.toast('已保存','success');
+    await this._sleep(120);
+    this._renderDeckModal(await DB.get('card_decks', this._deckId),
+      (await DB.list('card_items')).filter(i => !i.deleted_at && i.deck_id === this._deckId));
+    this.render();
+  },
+
+  /* 从子弹窗回到卡组详情 */
+  async _reopenDeckModal() {
+    await this._sleep(120);
+    await this._rerenderDeckModal();
+  },
+
+  /* 轻量 HTML 转义，避免字卡内容里的特殊字符破坏模板 */
+  _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   },
 
   /* 删除选中字卡（编辑模式下点「删除」） */
