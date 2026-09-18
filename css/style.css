@@ -320,6 +320,50 @@ ul, ol { list-style: none; }
 }
 .cards-deck-cards .tag-chip { padding: 8px 14px; }
 
+/* ============ 字卡传讯：新增字卡 / 自由补充 ============ */
+/* 新增字卡按钮：粉紫渐变，与主题协调 */
+.cards-deck-add {
+  background: linear-gradient(135deg, var(--color-wisteria), var(--color-rose));
+  color: #fff; border-color: transparent; font-weight: 600;
+  box-shadow: 0 2px 10px rgba(187,164,217,.35);
+}
+.cards-deck-add:hover {
+  background: linear-gradient(135deg, var(--color-rose), var(--color-accent));
+  border-color: transparent; color: #fff;
+  box-shadow: 0 4px 16px rgba(241,148,166,.45);
+}
+
+/* 已补充字卡的标记点 */
+.cards-chip__dot {
+  margin-left: 5px; font-weight: 900; font-size: 16px; line-height: 1;
+  vertical-align: middle; opacity: .85;
+}
+
+/* 字卡详情弹窗 */
+.cards-card-detail__word {
+  font-size: 22px; font-weight: 700; color: var(--color-primary);
+  text-align: center; padding: 16px 14px; margin-bottom: 4px;
+  border-radius: var(--radius-md, 14px);
+  background: linear-gradient(135deg, var(--color-rose-soft), rgba(187,164,217,.45));
+  letter-spacing: 1px;
+}
+.cards-card-detail .textarea { min-height: 84px; }
+.cards-card-detail__opt {
+  font-size: var(--font-size-xs); font-weight: 400;
+  color: var(--color-text-faint); margin-left: 4px;
+}
+.cards-card-detail__saved {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; margin-top: 4px;
+  border-radius: var(--radius-sm, 10px);
+  background: rgba(187,164,217,.14);
+  border: 1px dashed var(--color-wisteria);
+}
+.cards-card-detail__saved-tag {
+  font-size: var(--font-size-xs); font-weight: 600;
+  color: var(--color-wisteria); white-space: nowrap;
+}
+
 /* 工具类 */
 .grid { display: grid; gap: 16px; }
 .book-icon {
