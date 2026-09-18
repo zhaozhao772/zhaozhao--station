@@ -3,6 +3,9 @@
  * 象征性工具，不代表现实人物信息
  */
 const CardsModule = {
+  /* 等待工具：确认弹窗关闭后需等 UI 轮询结算，再重开详情页 */
+  _sleep(ms) { return new Promise(r => setTimeout(r, ms)); },
+
   async render() {
     if (!App.state.settings.enable_cards) {
       document.getElementById('pageContent').innerHTML = `<div class="page"><div class="card">${UI.empty('💌','字卡功能未开启，可在设置中开启')}</div></div>`;
@@ -36,13 +39,15 @@ const CardsModule = {
               ${decks.map(d => {
                 const items = (window._cardItems || []).filter(i => i.deck_id === d.id);
                 return `
-                  <div class="list-item" style="cursor:pointer" onclick="CardsModule.viewDeck('${d.id}')">
+                  <div class="list-item cards-deck-item" style="cursor:pointer" onclick="CardsModule.viewDeck('${d.id}')">
                     <span style="font-size:20px">🎴</span>
                     <div class="list-item__main">
                       <div class="list-item__title">${d.name}</div>
                       <div class="list-item__sub">${d.description||''}</div>
                     </div>
                     <span class="badge">${items.length}</span>
+                    <button class="btn btn--sm cards-deck-del" title="删除卡组"
+                      onclick="event.stopPropagation();CardsModule.delDeck('${d.id}')">删除</button>
                   </div>
                 `;
               }).join('')}
@@ -357,15 +362,120 @@ const CardsModule = {
     this.render();
   },
 
+  /* ============ 卡组详情：查看 / 多选编辑 / 删除 ============ */
   async viewDeck(id) {
     const deck = await DB.get('card_decks', id);
+    if (!deck || deck.deleted_at) { UI.toast('卡组不存在','error'); return; }
     const items = (await DB.list('card_items')).filter(i => !i.deleted_at && i.deck_id === id);
-    UI.modal(`${deck.name}`, `
-      <p class="text-soft text-sm mb-3">${deck.description||''}</p>
-      <div class="flex flex-wrap gap-2 mb-3">
-        ${items.map(i => `<span class="tag-chip" style="padding:8px 14px">${i.word}</span>`).join('')}
+    // 初始化多选状态（每次打开详情页重置）
+    this._editMode = false;
+    this._selected = new Set();
+    this._deckId = id;
+    this._renderDeckModal(deck, items);
+  },
+
+  _renderDeckModal(deck, items) {
+    const edit = this._editMode;
+    const sel = this._selected;
+    const body = `
+      <p class="text-soft text-sm mb-3">${deck.description || ''}</p>
+      <div class="flex justify-between items-center mb-3 cards-deck-toolbar">
+        <span class="text-faint text-xs">${edit ? `已选 ${sel.size} / ${items.length} 张` : `共 ${items.length} 张字卡`}</span>
+        <div class="flex gap-2">
+          <button class="btn btn--sm ${edit ? 'btn--primary' : ''}" onclick="CardsModule.toggleEditAll()">编辑全部</button>
+          <button class="btn btn--sm btn--accent" onclick="CardsModule.deckDeleteSelected()">删除</button>
+        </div>
       </div>
-      <button class="btn btn--primary btn--sm" onclick="UI.closeModal();CardsModule.draw()">用此卡组抽卡</button>
-    `);
+      ${items.length === 0 ? `<p class="text-faint text-sm">这个卡组还没有字卡</p>` : `
+        <div class="flex flex-wrap gap-2 mb-3 cards-deck-cards">
+          ${items.map(i => `
+            <span class="tag-chip ${edit && sel.has(i.id) ? 'active cards-chip--sel' : ''}"
+                  data-card-id="${i.id}"
+                  onclick="CardsModule.onChipClick('${i.id}')">${i.word}</span>
+          `).join('')}
+        </div>
+      `}
+      ${edit ? `<p class="text-faint text-xs mb-2">多选模式：点击字卡可选中/取消；再点「编辑全部」退出编辑</p>` : ''}
+      <div class="flex gap-3 mt-2" style="justify-content:flex-end">
+        ${edit
+          ? `<button class="btn btn--sm" onclick="CardsModule.toggleEditAll()">完成编辑</button>`
+          : `<button class="btn btn--primary btn--sm" onclick="UI.closeModal();CardsModule.draw()">用此卡组抽卡</button>
+             <button class="btn btn--sm" onclick="UI.closeModal()">关闭</button>`}
+      </div>
+    `;
+    UI.modal(deck.name, body, { closeOnOutside: false });
+    // 挂载后：点击弹窗其他区域可退出多选模式
+    const overlay = document.getElementById('appModal');
+    if (overlay) {
+      overlay.onclick = (e) => {
+        if (e.target === overlay) {
+          if (this._editMode) { this._editMode = false; this._selected.clear(); this.viewDeck(this._deckId); }
+          else UI.closeModal();
+        }
+      };
+    }
+  },
+
+  /* 多选模式开关 */
+  async toggleEditAll() {
+    this._editMode = !this._editMode;
+    if (!this._editMode) this._selected.clear();
+    await this._rerenderDeckModal();
+  },
+
+  /* 点击字卡：编辑模式下切换选中 */
+  async onChipClick(cardId) {
+    if (!this._editMode) return;   // 非编辑模式不做任何事
+    if (this._selected.has(cardId)) this._selected.delete(cardId);
+    else this._selected.add(cardId);
+    await this._rerenderDeckModal();
+  },
+
+  async _rerenderDeckModal() {
+    const deck = await DB.get('card_decks', this._deckId);
+    if (!deck) return;
+    const items = (await DB.list('card_items')).filter(i => !i.deleted_at && i.deck_id === this._deckId);
+    this._renderDeckModal(deck, items);
+  },
+
+  /* 删除选中字卡（编辑模式下点「删除」） */
+  async deckDeleteSelected() {
+    if (!this._editMode) {
+      UI.toast('先点「编辑全部」进入多选，再选择要删除的字卡','info');
+      return;
+    }
+    const n = this._selected.size;
+    if (n === 0) { UI.toast('请先选择要删除的字卡','info'); return; }
+    const okDel = await UI.confirm(`确定删除已选中的 ${n} 张字卡？<br>未选中的字卡不受影响，其他卡组和抽卡记录也不会丢失。`, { title: '删除字卡', okText: '确认删除' });
+    if (!okDel) {
+      // 取消：回到详情页（保留当前选中状态）
+      await this._sleep(120);
+      await this._rerenderDeckModal();
+      return;
+    }
+    const ids = [...this._selected];
+    for (const id of ids) await DB.hardDelete('card_items', id);
+    this._selected.clear();
+    this._editMode = false;
+    UI.toast(`已删除 ${ids.length} 张字卡`,'success');
+    await this._sleep(120);
+    await this._rerenderDeckModal();
+    this.render();
+  },
+
+  /* 删除整个卡组及其字卡 */
+  async delDeck(id) {
+    const deck = await DB.get('card_decks', id);
+    if (!deck) return;
+    const items = (await DB.list('card_items')).filter(i => !i.deleted_at && i.deck_id === id);
+    const draws = (await DB.list('card_draws')).filter(d => !d.deleted_at && d.deck_id === id);
+    const drawTip = draws.length > 0 ? `<br><span class="text-faint text-xs">该卡组已有 ${draws.length} 条抽卡记录，记录会保留，不受影响。</span>` : '';
+    const okDel = await UI.confirm(`确定删除卡组「${deck.name}」？<br>将同时删除该卡组内的 ${items.length} 张字卡，此操作不可撤销。${drawTip}`, { title: '删除卡组', okText: '确认删除' });
+    if (!okDel) return;
+    for (const it of items) await DB.hardDelete('card_items', it.id);
+    await DB.hardDelete('card_decks', id);
+    UI.toast(`已删除卡组「${deck.name}」`,'success');
+    await this._sleep(120);
+    this.render();
   },
 };
