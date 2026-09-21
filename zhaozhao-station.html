@@ -364,6 +364,67 @@ ul, ol { list-style: none; }
   color: var(--color-wisteria); white-space: nowrap;
 }
 
+/* ============ AI 聊天：模型切换 ============ */
+/* 顶部「连接 · 模型」胶囊：做成可点击按钮 */
+.chat-conn-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  background: var(--color-surface-blur);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  cursor: pointer; transition: all .18s ease;
+  font-family: inherit; line-height: 1.4;
+}
+.chat-conn-pill:hover {
+  border-color: var(--color-rose);
+  box-shadow: 0 2px 12px rgba(241,148,166,.28);
+  transform: translateY(-1px);
+}
+.chat-conn-pill:active { transform: scale(.98); }
+.chat-conn-pill b { color: var(--color-primary); font-weight: 700; }
+.chat-conn-pill__caret {
+  color: var(--color-rose); font-size: 11px; line-height: 1;
+  transition: transform .18s ease;
+}
+.chat-conn-pill:hover .chat-conn-pill__caret { transform: translateY(1px); }
+
+/* 模型选项列表 */
+.model-opt-list { display: flex; flex-direction: column; gap: 8px; }
+.model-opt {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-radius: var(--radius-md, 14px);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-blur);
+  cursor: pointer; transition: all .18s ease;
+}
+.model-opt:hover {
+  border-color: var(--color-rose);
+  background: rgba(248,197,206,.22);
+  transform: translateY(-1px);
+}
+.model-opt--active {
+  border-color: var(--color-rose);
+  background: linear-gradient(135deg, rgba(248,197,206,.5), rgba(187,164,217,.3));
+  box-shadow: 0 2px 12px rgba(241,148,166,.3);
+}
+.model-opt__main { flex: 1; min-width: 0; }
+.model-opt__name {
+  font-weight: 600; color: var(--color-primary);
+  font-size: var(--font-size-sm); word-break: break-all;
+}
+.model-opt--active .model-opt__name { color: var(--color-accent); }
+.model-opt__sub {
+  font-size: var(--font-size-xs); color: var(--color-text-faint); margin-top: 2px;
+}
+.model-opt__check {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--color-rose-soft), var(--color-rose));
+  color: #fff; font-size: 13px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(241,148,166,.45);
+}
+
 /* ============ 工具类 ============ */
 .grid { display: grid; gap: 16px; }
 .book-icon {
@@ -7870,9 +7931,11 @@ const AIChatModule = {
       this.showConnections();
       return;
     }
+    // 沿用上次选择的连接/模型
+    const prefConnId = await this._resolveActiveConnId(null);
     UI.modal('新建对话', `
       <div class="field"><label class="field__label">对话标题</label><input class="input" id="chatTitle" placeholder="给对话起个名字"></div>
-      <div class="field"><label class="field__label">API 连接</label><select class="select" id="chatConn">${connections.map(c=>`<option value="${c.id}">${c.name} (${c.provider})</option>`).join('')}</select></div>
+      <div class="field"><label class="field__label">API 连接 / 模型</label><select class="select" id="chatConn">${connections.map(c=>`<option value="${c.id}" ${c.id===prefConnId?'selected':''}>${c.name} · ${c.model||'未设置模型'}</option>`).join('')}</select></div>
       <div class="field"><label class="field__label">对方角色卡</label><select class="select" id="chatChar"><option value="">不使用</option>${resources.filter(r=>r.kind==='character').map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>
       <div class="field"><label class="field__label">我的角色卡</label><select class="select" id="chatPersona"><option value="">不使用</option>${resources.filter(r=>r.kind==='persona').map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>
       <div class="field"><label class="field__label">预设</label><select class="select" id="chatPreset"><option value="">不使用</option>${resources.filter(r=>r.kind==='preset').map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</select></div>
@@ -7918,9 +7981,10 @@ const AIChatModule = {
 
         <!-- 工具栏 -->
         <div class="chat-toolbar flex gap-2 mb-3 flex-wrap">
-          <div class="card--blur" style="padding:6px 12px;border-radius:999px">
-            <span class="text-faint text-xs">连接: ${conn?.name||'-'} · 模型: ${conn?.model||'-'}</span>
-          </div>
+          <button class="chat-conn-pill" onclick="AIChatModule.showModelPicker('${convId}')" title="点击切换模型">
+            <span class="text-faint text-xs">连接: ${conn?.name||'-'} · 模型: <b>${conn?.model||'-'}</b></span>
+            <span class="chat-conn-pill__caret">▾</span>
+          </button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showSearch('${convId}')">🔍 搜索</button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showBranchTree('${convId}')">🌿 分支</button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showBookmarks('${convId}')">🔖 收藏</button>
@@ -8021,6 +8085,113 @@ const AIChatModule = {
     return s?.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') || '';
   },
 
+  /* ============ 模型切换 ============ */
+  // 安全说明：本功能区只读写「连接名 / 模型名 / 供应商」等非敏感字段，
+  // 绝不读取、解密、输出 api_key_encrypted。
+
+  // 列出所有可用连接及其模型。每个连接贡献 1 条（连接自身配置的模型）。
+  async _listModelOptions() {
+    const conns = (await DB.list('ai_connections')).filter(c => !c.deleted_at);
+    const opts = [];
+    for (const c of conns) {
+      const model = (c.model || '').trim();
+      opts.push({
+        connId: c.id,
+        connName: c.name || '未命名',
+        provider: c.provider || '',
+        model: model || '',
+        label: model || '（未设置模型）',
+        usable: !!model,
+      });
+    }
+    return opts;
+  },
+
+  // 当前生效的连接 id：会话记忆优先，其次全局默认，最后第一条
+  async _resolveActiveConnId(conv) {
+    if (conv && conv.connection_id) return conv.connection_id;
+    const saved = await DB.getSetting('ai_active_conn_id', null);
+    if (saved) {
+      const c = await DB.get('ai_connections', saved);
+      if (c && !c.deleted_at) return saved;
+    }
+    const first = (await DB.list('ai_connections')).filter(c => !c.deleted_at)[0];
+    return first ? first.id : null;
+  },
+
+  async showModelPicker(convId) {
+    const conv = convId ? await DB.get('ai_conversations', convId) : null;
+    const opts = await this._listModelOptions();
+    const activeId = await this._resolveActiveConnId(conv);
+    this._pickerConvId = convId || null;
+
+    if (opts.length === 0) {
+      UI.modal('选择模型', `
+        <div class="text-center" style="padding:28px 8px">
+          <div style="font-size:34px;margin-bottom:10px">🤖</div>
+          <p class="text-soft text-sm mb-1">暂无已配置的模型</p>
+          <p class="text-faint text-xs">请先在「跨维沟通 → API 连接配置」里添加连接并填写模型</p>
+        </div>
+        <div class="flex gap-3 mt-3" style="justify-content:flex-end">
+          <button class="btn btn--sm" onclick="UI.closeModal()">关闭</button>
+          <button class="btn btn--primary btn--sm" onclick="UI.closeModal();AIChatModule.showConnections()">去配置</button>
+        </div>
+      `, { closeOnOutside: true });
+      return;
+    }
+
+    const rows = opts.map(o => {
+      const on = o.connId === activeId;
+      return `
+        <div class="model-opt ${on ? 'model-opt--active' : ''}"
+             onclick="AIChatModule.pickModel('${o.connId}')">
+          <div class="model-opt__main">
+            <div class="model-opt__name">${o.label}</div>
+            <div class="model-opt__sub">连接: ${o.connName}${o.provider ? ` · ${o.provider}` : ''}</div>
+          </div>
+          ${on ? '<span class="model-opt__check">✓</span>' : ''}
+        </div>
+      `;
+    }).join('');
+
+    UI.modal('选择模型', `
+      <p class="text-faint text-xs mb-3">点击即可切换，切换后立即生效并记住选择</p>
+      <div class="model-opt-list">${rows}</div>
+      <div class="flex gap-3 mt-3" style="justify-content:flex-end">
+        <button class="btn btn--sm" onclick="UI.closeModal()">关闭</button>
+      </div>
+    `, { closeOnOutside: true });
+  },
+
+  // 切换模型：写回连接 + 会话 + 全局默认，并刷新顶部文字
+  async pickModel(connId) {
+    const conn = await DB.get('ai_connections', connId);
+    if (!conn || conn.deleted_at) { UI.toast('连接不存在','error'); return; }
+    if (!(conn.model || '').trim()) { UI.toast('该连接还没有设置模型，请先去配置','error'); return; }
+
+    // 1) 会话级记忆（只改 connection_id，不动任何消息）
+    const convId = this._pickerConvId || this._currentConvId;
+    if (convId) {
+      const conv = await DB.get('ai_conversations', convId);
+      if (conv) { conv.connection_id = connId; await DB.save('ai_conversations', conv); }
+    }
+    // 2) 全局默认，新会话沿用
+    await DB.setSetting('ai_active_conn_id', connId);
+
+    UI.closeModal();
+    UI.toast(`已切换到 ${conn.model}`,'success');
+
+    // 3) 顶部文字同步更新（重渲染当前会话）
+    if (convId) {
+      await this._sleep(120);
+      await this.openChat(convId);
+    } else {
+      this.render();
+    }
+  },
+
+  _sleep(ms) { return new Promise(r => setTimeout(r, ms)); },
+
   async _sendMsg(convId) {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
@@ -8028,7 +8199,15 @@ const AIChatModule = {
     input.value = '';
 
     const conv = await DB.get('ai_conversations', convId);
-    const conn = await DB.get('ai_connections', conv.connection_id);
+    let conn = await DB.get('ai_connections', conv.connection_id);
+    // 会话未绑定连接（或连接已被删除）时，回退到全局默认连接
+    if (!conn || conn.deleted_at) {
+      const fallbackId = await this._resolveActiveConnId(null);
+      if (fallbackId) {
+        conn = await DB.get('ai_connections', fallbackId);
+        if (conn) { conv.connection_id = fallbackId; await DB.save('ai_conversations', conv); }
+      }
+    }
     if (!conn) { UI.toast('连接不存在','error'); return; }
 
     // 保存用户消息
