@@ -1,5 +1,5 @@
 // 昭昭专属个人站 - Service Worker
-const CACHE_NAME = 'zhaozhao-station-v23';
+const CACHE_NAME = 'zhaozhao-station-v24';
 const ASSETS = [
   './',
   './index.html',
