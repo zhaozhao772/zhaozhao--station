@@ -364,6 +364,67 @@ ul, ol { list-style: none; }
   color: var(--color-wisteria); white-space: nowrap;
 }
 
+/* ============ AI 聊天：模型切换 ============ */
+/* 顶部「连接 · 模型」胶囊：做成可点击按钮 */
+.chat-conn-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  background: var(--color-surface-blur);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  cursor: pointer; transition: all .18s ease;
+  font-family: inherit; line-height: 1.4;
+}
+.chat-conn-pill:hover {
+  border-color: var(--color-rose);
+  box-shadow: 0 2px 12px rgba(241,148,166,.28);
+  transform: translateY(-1px);
+}
+.chat-conn-pill:active { transform: scale(.98); }
+.chat-conn-pill b { color: var(--color-primary); font-weight: 700; }
+.chat-conn-pill__caret {
+  color: var(--color-rose); font-size: 11px; line-height: 1;
+  transition: transform .18s ease;
+}
+.chat-conn-pill:hover .chat-conn-pill__caret { transform: translateY(1px); }
+
+/* 模型选项列表 */
+.model-opt-list { display: flex; flex-direction: column; gap: 8px; }
+.model-opt {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-radius: var(--radius-md, 14px);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-blur);
+  cursor: pointer; transition: all .18s ease;
+}
+.model-opt:hover {
+  border-color: var(--color-rose);
+  background: rgba(248,197,206,.22);
+  transform: translateY(-1px);
+}
+.model-opt--active {
+  border-color: var(--color-rose);
+  background: linear-gradient(135deg, rgba(248,197,206,.5), rgba(187,164,217,.3));
+  box-shadow: 0 2px 12px rgba(241,148,166,.3);
+}
+.model-opt__main { flex: 1; min-width: 0; }
+.model-opt__name {
+  font-weight: 600; color: var(--color-primary);
+  font-size: var(--font-size-sm); word-break: break-all;
+}
+.model-opt--active .model-opt__name { color: var(--color-accent); }
+.model-opt__sub {
+  font-size: var(--font-size-xs); color: var(--color-text-faint); margin-top: 2px;
+}
+.model-opt__check {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--color-rose-soft), var(--color-rose));
+  color: #fff; font-size: 13px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(241,148,166,.45);
+}
+
 /* 工具类 */
 .grid { display: grid; gap: 16px; }
 .book-icon {
