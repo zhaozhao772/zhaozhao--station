@@ -11,7 +11,7 @@
 
 // ============ 常量定义（固定身份，不得随意修改） ============
 const DB_NAME = 'zhaozhao_station_db';       // 固定数据库名
-const DB_VERSION = 3;                          // 数据版本号（v2 新增 angel_* 表；v3 新增 sleep_* 表）
+const DB_VERSION = 4;                          // 数据版本号（v2 新增 angel_* 表；v3 新增 sleep_* 表；v4 新增 ent_* 表）
 const LS_PREFIX = 'zhaozhao_';                 // localStorage 键前缀
 const BACKUP_PREFIX = 'zhaozhao_backup_';      // 备份键前缀
 
@@ -58,6 +58,8 @@ const STORE_DEFS = [
   { name: 'sleep_records',   keyPath: 'id' },            // 早睡打卡·每日记录（一天一条，date 唯一）
   { name: 'sleep_reviews',   keyPath: 'id' },            // 早睡打卡·周期复盘（id: weekly:起始日 / monthly:年-月）
   { name: 'sleep_custom_tags', keyPath: 'id' },          // 早睡打卡·自定义分类（id: kind:name）
+  { name: 'ent_boards',       keyPath: 'id' },           // 娱乐·子板块（红果短剧/电影/综艺等，可自行添加）
+  { name: 'ent_records',      keyPath: 'id' },           // 娱乐·条目记录（board_id 关联子板块；含图片/名字/集数/分类/评分/重复刷/记录）
 ];
 
 // ============ 工具函数 ============
