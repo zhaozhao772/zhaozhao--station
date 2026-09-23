@@ -1210,6 +1210,190 @@ mark {
 .smodal .sbtn[data-ghost]{background:transparent}
 .smodal .sbtn[disabled]{opacity:.55;cursor:not-allowed}
 .smodal .sfield{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+/* ============================================================
+   娱乐板块（entertainment.js）
+   子板块 tab / 封面卡片网格 / 五星评分 / 搜索高亮
+   ============================================================ */
+
+/* ---- 一键检索搜索条 ---- */
+.ent-searchbar { position: relative; }
+.ent-searchbar__input { width: 100%; background: var(--color-surface-blur); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 999px; padding-left: 18px; padding-right: 40px; }
+.ent-searchbar__clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 26px; border-radius: 50%; line-height: 1;
+  background: var(--color-divider); color: var(--color-text-soft); font-size: 13px;
+}
+.ent-searchbar__clear:hover { background: var(--color-rose-soft); color: #fff; }
+
+/* ---- 子板块 tab 条 ---- */
+.ent-tabs {
+  display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.ent-tabs::-webkit-scrollbar { display: none; }
+.ent-tab {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 15px; border-radius: 999px; font-size: var(--font-size-sm);
+  background: var(--color-surface-blur); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--color-border); color: var(--color-text-soft);
+  transition: all .18s; white-space: nowrap;
+}
+.ent-tab:hover { border-color: var(--color-rose); transform: translateY(-1px); }
+.ent-tab--active {
+  background: linear-gradient(135deg, var(--color-rose-soft), var(--color-rose));
+  border-color: transparent; color: #fff; font-weight: 600;
+  box-shadow: 0 3px 10px rgba(241,148,166,0.35);
+}
+.ent-tab--active .ent-tab__count { background: rgba(255,255,255,0.35); color: #fff; }
+.ent-tab__icon { font-size: 15px; }
+.ent-tab__count {
+  background: var(--color-divider); border-radius: 999px;
+  padding: 0 7px; font-size: var(--font-size-xs); color: var(--color-text-faint);
+}
+.ent-tab--plus {
+  background: transparent; border-style: dashed; border-color: var(--color-rose-soft);
+  color: var(--color-rose); font-size: 16px; padding: 7px 13px;
+}
+
+/* ---- 板块头（板块内搜索 + 添加按钮） ---- */
+.ent-board-head { display: flex; gap: 8px; align-items: center; }
+.ent-board-head .ent-searchbar__input { border-radius: 999px; padding-left: 16px; }
+.ent-hint { font-size: var(--font-size-xs); color: var(--color-text-faint); padding: 0 2px; }
+
+/* ---- 检索结果筛选条 ---- */
+.ent-filter-bar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.ent-filter-bar::-webkit-scrollbar { display: none; }
+.ent-filter-chip {
+  flex-shrink: 0; padding: 5px 12px; border-radius: 999px; font-size: var(--font-size-xs);
+  background: var(--color-surface-blur); border: 1px solid var(--color-border);
+  color: var(--color-text-soft); white-space: nowrap; transition: all .15s;
+}
+.ent-filter-chip--active {
+  background: linear-gradient(135deg, var(--color-wisteria), var(--color-primary-soft));
+  border-color: transparent; color: #fff; font-weight: 600;
+}
+
+/* ---- 卡片网格 ---- */
+.ent-grid {
+  display: grid; gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+}
+.ent-card {
+  background: var(--color-surface-blur); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  overflow: hidden; cursor: pointer; transition: all .2s;
+  box-shadow: var(--shadow-sm);
+}
+.ent-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--color-rose-soft); }
+.ent-card:active { transform: scale(0.98); }
+.ent-card__cover { position: relative; aspect-ratio: 3 / 4; overflow: hidden; background: linear-gradient(160deg, rgba(248,197,206,0.35), rgba(187,164,217,0.35)); }
+.ent-card__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ent-card__placeholder {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 34px; opacity: 0.55;
+}
+.ent-card__rewatch {
+  position: absolute; top: 8px; right: 8px;
+  background: linear-gradient(135deg, var(--color-rose-soft), var(--color-rose));
+  color: #fff; font-size: var(--font-size-xs); padding: 2px 9px; border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(241,148,166,0.5); font-weight: 600;
+}
+.ent-card__body { padding: 9px 10px 11px; }
+.ent-card__title {
+  font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  min-height: 2.9em;
+}
+.ent-card__meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.ent-card__eps { font-size: var(--font-size-xs); color: var(--color-text-soft); }
+.ent-card__stars { font-size: 12px; letter-spacing: 1px; line-height: 1; }
+.ent-card__tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.ent-mini-chip {
+  font-size: 11px; padding: 1px 8px; border-radius: 999px;
+  background: rgba(187,164,217,0.18); color: var(--color-primary-soft);
+  border: 1px solid rgba(187,164,217,0.35); white-space: nowrap;
+}
+.ent-card__board { font-size: 11px; color: var(--color-text-faint); margin-top: 6px; }
+
+/* ---- 星星 ---- */
+.ent-star { color: var(--color-border); }
+.ent-star--on {
+  color: var(--color-warning);
+  text-shadow: 0 0 6px rgba(245,185,122,0.55);
+}
+.ent-stars-input { display: flex; align-items: center; gap: 6px; }
+.ent-star-btn {
+  font-size: 30px; line-height: 1; color: var(--color-border);
+  transition: all .15s; padding: 2px;
+}
+.ent-star-btn:hover { transform: scale(1.15); }
+.ent-star-btn--on {
+  color: var(--color-warning); text-shadow: 0 0 10px rgba(245,185,122,0.7);
+}
+.ent-star-clear { font-size: var(--font-size-xs); color: var(--color-text-faint); margin-left: 8px; text-decoration: underline; }
+
+/* ---- 搜索关键词高亮 ---- */
+mark.ent-hl {
+  background: linear-gradient(transparent 55%, rgba(248,197,206,0.85) 55%);
+  color: inherit; padding: 0 1px; border-radius: 2px; font-weight: 700;
+}
+[data-theme="dark"] mark.ent-hl { background: linear-gradient(transparent 55%, rgba(170,102,124,0.75) 55%); }
+
+/* ---- 表单：封面 / 自定义分类 / 图标 ---- */
+.ent-form-cover {
+  width: 150px; aspect-ratio: 3 / 4; border-radius: var(--radius-sm);
+  border: 2px dashed var(--color-rose-soft); overflow: hidden; cursor: pointer;
+  background: rgba(248,197,206,0.08); transition: all .2s;
+}
+.ent-form-cover:hover { border-color: var(--color-rose); background: rgba(248,197,206,0.16); }
+.ent-form-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ent-form-cover__empty {
+  width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; font-size: var(--font-size-xs); color: var(--color-text-faint);
+}
+.ent-form-cover__icon { font-size: 26px; }
+.ent-tag-add { display: flex; gap: 8px; }
+.ent-tag-add__input { flex: 1; border-radius: 999px; }
+.ent-icon-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ent-icon-opt {
+  width: 42px; height: 42px; border-radius: var(--radius-sm); font-size: 22px;
+  background: var(--color-bg-alt); border: 1px solid var(--color-border); transition: all .15s;
+}
+.ent-icon-opt:hover { border-color: var(--color-rose); transform: translateY(-1px); }
+.ent-icon-opt--active {
+  background: linear-gradient(135deg, rgba(248,197,206,0.5), rgba(241,148,166,0.4));
+  border-color: var(--color-rose); box-shadow: 0 2px 8px rgba(241,148,166,0.35);
+}
+
+/* ---- 详情弹窗 ---- */
+.ent-detail__cover {
+  width: 170px; display: block; margin: 0 auto 14px;
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md); cursor: zoom-in;
+}
+.ent-detail__title { font-size: var(--font-size-xl); font-weight: 700; text-align: center; line-height: 1.5; }
+.ent-detail__badges { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ent-badge {
+  font-size: var(--font-size-xs); padding: 3px 11px; border-radius: 999px;
+  background: rgba(187,164,217,0.16); color: var(--color-primary); border: 1px solid rgba(187,164,217,0.35);
+}
+.ent-badge--rose { background: rgba(241,148,166,0.16); color: var(--color-accent); border-color: rgba(241,148,166,0.4); }
+.ent-detail__stars { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; font-size: 20px; }
+.ent-detail__score { font-size: var(--font-size-sm); color: var(--color-warning); font-weight: 700; }
+.ent-detail__tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.ent-detail__note {
+  margin-top: 14px; background: var(--color-bg-alt); border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+}
+.ent-note-text { white-space: pre-wrap; word-break: break-word; font-size: var(--font-size-sm); line-height: 1.8; }
+
+/* ---- 窄屏适配：卡片稍小 ---- */
+@media (max-width: 480px) {
+  .ent-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 10px; }
+  .ent-detail__cover { width: 145px; }
+}
+.ent-card__note {
+  font-size: 11px; color: var(--color-text-faint); margin-top: 5px; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -1237,7 +1421,7 @@ mark {
 
 // ============ 常量定义（固定身份，不得随意修改） ============
 const DB_NAME = 'zhaozhao_station_db';       // 固定数据库名
-const DB_VERSION = 3;                          // 数据版本号（v2 新增 angel_* 表；v3 新增 sleep_* 表）
+const DB_VERSION = 4;                          // 数据版本号（v2 新增 angel_* 表；v3 新增 sleep_* 表；v4 新增 ent_* 表）
 const LS_PREFIX = 'zhaozhao_';                 // localStorage 键前缀
 const BACKUP_PREFIX = 'zhaozhao_backup_';      // 备份键前缀
 
@@ -1284,6 +1468,8 @@ const STORE_DEFS = [
   { name: 'sleep_records',   keyPath: 'id' },            // 早睡打卡·每日记录（一天一条，date 唯一）
   { name: 'sleep_reviews',   keyPath: 'id' },            // 早睡打卡·周期复盘（id: weekly:起始日 / monthly:年-月）
   { name: 'sleep_custom_tags', keyPath: 'id' },          // 早睡打卡·自定义分类（id: kind:name）
+  { name: 'ent_boards',       keyPath: 'id' },           // 娱乐·子板块（红果短剧/电影/综艺等，可自行添加）
+  { name: 'ent_records',      keyPath: 'id' },           // 娱乐·条目记录（board_id 关联子板块；含图片/名字/集数/分类/评分/重复刷/记录）
 ];
 
 // ============ 工具函数 ============
@@ -1827,6 +2013,7 @@ const App = {
     { id: 'reminders',  name: '提醒中心', icon: '🔔', privacy: false },
     { id: 'angel',      name: '天使数字解读', icon: '🔢', privacy: false },
     { id: 'sleep',      name: '早睡打卡', icon: '😴', privacy: false },
+    { id: 'entertainment', name: '娱乐', icon: '🍿', privacy: false },
   ],
 
   async init() {
@@ -1989,6 +2176,7 @@ const App = {
       reminders: () => RemindersModule.render(),
       angel: () => AngelModule.render(),
       sleep: () => SleepModule.render(),
+      entertainment: () => EntModule.render(),
       settings: () => SettingsModule.render(),
     };
     const fn = router[pageId];
@@ -11318,7 +11506,745 @@ const SleepModule = (function () {
 window.SleepModule = SleepModule;
 
 
+/**
+ * 娱乐板块（一级模块）
+ * - 可包含多个子板块（红果短剧 / 电影 / 综艺等，可自行添加、改名、删除）
+ * - 每条记录：封面图片（自动压缩）/ 名字 / 集数 / 分类标签（多选+自定义）/ 五星评分 / 重复刷次数 / 自由记录
+ * - 检索：顶部跨子板块一键检索（支持按子板块筛选）+ 子板块内独立搜索，均即时刷新并高亮关键词
+ * - 数据存 IndexedDB（ent_boards / ent_records），刷新不丢失
+ */
+const EntModule = {
 
+  state: {
+    boards: [],            // 子板块列表
+    currentBoardId: null,  // 当前所在子板块
+    globalKw: '',          // 顶部一键检索关键词
+    globalFilter: 'all',   // 一键检索结果的板块筛选（'all' | boardId）
+    boardKw: '',           // 当前子板块内搜索关键词
+  },
+
+  // 预置常用分类（供选择，实际以用户点选/自定义为准）
+  PRESET_TAGS: ['霸总', '穿越', '重生', '甜宠', '复仇', '逆袭', '古装', '现代', '玄幻', '悬疑', '萌宝', '战神', '先婚后爱', '马甲'],
+  BOARD_ICONS: ['📺', '🍿', '🎬', '🎭', '🎤', '🎮', '🎵', '💃', '🎪', '⭐'],
+
+  // ============ 入口 ============
+  async render() {
+    await this._loadBoards();
+    if (!this.state.currentBoardId || !this.state.boards.find(b => b.id === this.state.currentBoardId)) {
+      this.state.currentBoardId = this.state.boards[0] ? this.state.boards[0].id : null;
+    }
+    document.getElementById('pageContent').innerHTML = `
+      <div class="page">
+        <div class="flex justify-between items-center mb-4">
+          <div class="page__title" style="margin:0">🍿 娱乐</div>
+          <button class="btn btn--ghost btn--sm" onclick="EntModule._boardManager()">⚙️ 管理子板块</button>
+        </div>
+
+        <!-- 一键检索（跨所有子板块） -->
+        <div class="ent-searchbar mb-3">
+          <input id="entGlobalSearch" class="input ent-searchbar__input" placeholder="🔍 一键检索：跨所有子板块搜名字 / 分类 / 记录内容"
+                 value="${this._esc(this.state.globalKw)}"
+                 oninput="EntModule.onGlobalSearch(this.value)">
+          ${this.state.globalKw ? `<button class="ent-searchbar__clear" onclick="EntModule.onGlobalSearch('');document.getElementById('entGlobalSearch').value=''">✕</button>` : ''}
+        </div>
+
+        <!-- 子板块切换条 -->
+        <div class="ent-tabs mb-3" id="entTabs"></div>
+
+        <!-- 内容区：搜索时显示检索结果，否则显示当前子板块 -->
+        <div id="entContent"><div class="text-center" style="padding:40px"><div class="spinner"></div></div></div>
+      </div>
+    `;
+    this._renderTabs();
+    await this._renderContent();
+  },
+
+  // ============ 数据加载 ============
+  async _loadBoards() {
+    await this._seedBoards();
+    const boards = (await DB.list('ent_boards')).filter(b => !b.deleted_at);
+    boards.sort((a, b) => ((a.sort ?? 0) - (b.sort ?? 0)) || String(a.created_at || '').localeCompare(String(b.created_at || '')));
+    this.state.boards = boards;
+  },
+
+  // 首次进入：预置「红果短剧」子板块（仅当没有任何板块时）
+  async _seedBoards() {
+    if (await DB.getSetting('ent_boards_seeded_v1')) return;
+    const boards = await DB.list('ent_boards');
+    if (boards.length === 0) {
+      await DB.put('ent_boards', {
+        id: 'hongguo', name: '红果短剧', icon: '📺', sort: 0,
+        created_at: nowISO(), updated_at: nowISO(),
+      });
+    }
+    await DB.setSetting('ent_boards_seeded_v1', true);
+  },
+
+  async _boardCounts() {
+    const recs = (await DB.list('ent_records')).filter(r => !r.deleted_at);
+    const m = {};
+    recs.forEach(r => { m[r.board_id] = (m[r.board_id] || 0) + 1; });
+    return m;
+  },
+
+  async _collectTags() {
+    const recs = await DB.list('ent_records');
+    const seen = [];
+    recs.forEach(r => (r.tags || []).forEach(t => { if (t && !seen.includes(t)) seen.push(t); }));
+    return seen;
+  },
+
+  _mergeTags(...lists) {
+    const out = [];
+    lists.forEach(list => (list || []).forEach(t => { if (t && !out.includes(t)) out.push(t); }));
+    return out;
+  },
+
+  // ============ 渲染：子板块切换条 ============
+  async _renderTabs() {
+    const el = document.getElementById('entTabs');
+    if (!el) return;
+    const counts = await this._boardCounts();
+    el.innerHTML = this.state.boards.map(b => `
+      <button class="ent-tab ${b.id === this.state.currentBoardId ? 'ent-tab--active' : ''}"
+              onclick="EntModule._switchBoard('${b.id}')">
+        <span class="ent-tab__icon">${this._esc(b.icon || '🍿')}</span>${this._esc(b.name)}
+        <span class="ent-tab__count">${counts[b.id] || 0}</span>
+      </button>
+    `).join('') + `
+      <button class="ent-tab ent-tab--plus" onclick="EntModule.addBoard()" title="新建子板块">＋</button>
+    `;
+  },
+
+  // ============ 渲染：内容区路由 ============
+  async _renderContent() {
+    const el = document.getElementById('entContent');
+    if (!el) return;
+    if (this.state.globalKw.trim()) {
+      el.innerHTML = await this._renderGlobalResults();
+    } else {
+      el.innerHTML = await this._renderBoardView();
+    }
+  },
+
+  // 当前子板块视图（含板块内独立搜索框）
+  async _renderBoardView() {
+    const board = this.state.boards.find(b => b.id === this.state.currentBoardId);
+    if (!board) return UI.empty('🍿', '还没有子板块，点击下方 ➕ 新建一个');
+    const recs = (await DB.list('ent_records'))
+      .filter(r => !r.deleted_at && r.board_id === board.id)
+      .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+    const kw = this.state.boardKw.trim();
+    const shown = kw ? recs.filter(r => this._match(r, kw)) : recs;
+    return `
+      <div class="ent-board-head mb-2">
+        <input id="entBoardSearch" class="input ent-searchbar__input"
+               placeholder="🔍 在「${this._esc(board.name)}」内搜索名字 / 分类 / 记录…"
+               value="${this._esc(this.state.boardKw)}"
+               oninput="EntModule.onBoardSearch(this.value)">
+        <button class="btn btn--primary btn--sm" style="white-space:nowrap" onclick="EntModule.openForm('${board.id}')">＋ 添加</button>
+      </div>
+      ${kw ? `<div class="ent-hint mb-2">「${this._esc(board.name)}」内搜到 ${shown.length} 条</div>` : `<div class="ent-hint mb-2">${this._statLine(recs)}</div>`}
+      <div id="entBoardList">${this._renderCardList(shown, kw, false)}</div>
+    `;
+  },
+
+  // 一键检索结果视图（跨所有子板块 + 板块筛选）
+  async _renderGlobalResults() {
+    const kw = this.state.globalKw.trim();
+    const all = (await DB.list('ent_records'))
+      .filter(r => !r.deleted_at && this._match(r, kw))
+      .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+    const counts = {};
+    all.forEach(r => { counts[r.board_id] = (counts[r.board_id] || 0) + 1; });
+    const filter = this.state.globalFilter;
+    const shown = (filter === 'all') ? all : all.filter(r => r.board_id === filter);
+    const boardName = id => {
+      const b = this.state.boards.find(x => x.id === id);
+      return b ? `${b.icon || '🍿'} ${b.name}` : '未知板块';
+    };
+    return `
+      <div class="ent-filter-bar mb-2">
+        <button class="ent-filter-chip ${filter === 'all' ? 'ent-filter-chip--active' : ''}"
+                onclick="EntModule.setGlobalFilter('all')">全部 ${all.length}</button>
+        ${this.state.boards.map(b => `
+          <button class="ent-filter-chip ${filter === b.id ? 'ent-filter-chip--active' : ''}"
+                  onclick="EntModule.setGlobalFilter('${b.id}')">${this._esc(b.icon || '🍿')} ${this._esc(b.name)} ${counts[b.id] || 0}</button>
+        `).join('')}
+      </div>
+      <div class="ent-hint mb-2">跨子板块搜到 ${all.length} 条${filter !== 'all' ? `，当前显示「${this._esc(boardName(filter).replace(/^[^\s]+\s/, ''))}」${shown.length} 条` : ''}</div>
+      <div id="entBoardList">${this._renderCardList(shown, kw, true)}</div>
+    `;
+  },
+
+  // 卡片网格（板块视图与全局搜索结果共用）
+  _renderCardList(records, kw, showBoard) {
+    if (!records.length) {
+      return kw
+        ? `<div class="card">${UI.empty('🔍', '没有找到相关记录，换个关键词试试')}</div>`
+        : `<div class="card">${UI.empty('🍿', '还没有记录，点击右上角「＋ 添加」')}</div>`;
+    }
+    const boardMap = {};
+    this.state.boards.forEach(b => { boardMap[b.id] = b; });
+    return `
+      <div class="ent-grid">
+        ${records.map(r => this._renderCard(r, kw, showBoard, boardMap)).join('')}
+      </div>
+    `;
+  },
+
+  _renderCard(r, kw, showBoard, boardMap) {
+    const board = boardMap[r.board_id];
+    return `
+      <div class="ent-card" onclick="EntModule.openDetail('${r.id}')">
+        <div class="ent-card__cover">
+          ${r.image
+            ? `<img src="${r.image}" alt="" loading="lazy">`
+            : `<div class="ent-card__placeholder"><span>🎬</span></div>`}
+          ${r.rewatch ? `<span class="ent-card__rewatch">🔁 ${this._esc(r.rewatch)}</span>` : ''}
+        </div>
+        <div class="ent-card__body">
+          <div class="ent-card__title">${this._hl(r.title, kw)}</div>
+          <div class="ent-card__meta">
+            ${r.episodes ? `<span class="ent-card__eps">📺 ${r.episodes}集</span>` : ''}
+            <span class="ent-card__stars">${this._starsHtml(r.rating)}</span>
+          </div>
+          ${(r.tags && r.tags.length) ? `
+            <div class="ent-card__tags">
+              ${r.tags.map(t => `<span class="ent-mini-chip">${this._hl(t, kw)}</span>`).join('')}
+            </div>` : ''}
+          ${r.note ? `<div class="ent-card__note">${this._hl(this._brief(r.note, 50), kw)}</div>` : ''}
+          ${showBoard && board ? `<div class="ent-card__board">${this._esc(board.icon || '🍿')} ${this._esc(board.name)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  },
+
+  // ============ 搜索 ============
+  // 顶部一键检索：即时刷新内容区（搜索框在内容区之外，焦点不丢）
+  onGlobalSearch(kw) {
+    this.state.globalKw = kw || '';
+    if (!this.state.globalKw.trim()) this.state.globalFilter = 'all';
+    const clearBtn = document.querySelector('.ent-searchbar__clear');
+    if (this.state.globalKw && !clearBtn) {
+      const bar = document.getElementById('entGlobalSearch');
+      if (bar && bar.parentElement) {
+        const btn = document.createElement('button');
+        btn.className = 'ent-searchbar__clear';
+        btn.textContent = '✕';
+        btn.onclick = () => { document.getElementById('entGlobalSearch').value = ''; EntModule.onGlobalSearch(''); };
+        bar.parentElement.appendChild(btn);
+      }
+    } else if (!this.state.globalKw && clearBtn) {
+      clearBtn.remove();
+    }
+    this._renderContent();
+  },
+
+  setGlobalFilter(boardId) {
+    this.state.globalFilter = boardId || 'all';
+    this._renderContent();
+  },
+
+  // 子板块内搜索：只更新列表容器（输入框不动，焦点不丢）
+  onBoardSearch(kw) {
+    this.state.boardKw = kw || '';
+    this._refreshBoardList();
+  },
+
+  async _refreshBoardList() {
+    const el = document.getElementById('entBoardList');
+    if (!el) return;
+    const board = this.state.boards.find(b => b.id === this.state.currentBoardId);
+    if (!board) return;
+    const recs = (await DB.list('ent_records'))
+      .filter(r => !r.deleted_at && r.board_id === board.id)
+      .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+    const kw = this.state.boardKw.trim();
+    const shown = kw ? recs.filter(r => this._match(r, kw)) : recs;
+    el.innerHTML = this._renderCardList(shown, kw, false);
+    const hint = el.previousElementSibling;
+    if (hint && hint.classList && hint.classList.contains('ent-hint')) {
+      hint.textContent = kw ? `「${board.name}」内搜到 ${shown.length} 条` : this._statLine(recs);
+    }
+  },
+
+  // 匹配：名字 / 分类标签 / 记录内容（大小写不敏感）
+  _match(r, kw) {
+    if (!kw) return true;
+    kw = String(kw).trim().toLowerCase();
+    if (!kw) return true;
+    if ((r.title || '').toLowerCase().includes(kw)) return true;
+    if ((r.tags || []).some(t => String(t).toLowerCase().includes(kw))) return true;
+    if ((r.note || '').toLowerCase().includes(kw)) return true;
+    return false;
+  },
+
+  // ============ 详情弹窗 ============
+  async openDetail(id) {
+    const r = await DB.get('ent_records', id);
+    if (!r) { UI.toast('记录不存在或已删除', 'error'); return; }
+    const board = this.state.boards.find(b => b.id === r.board_id);
+    UI.modal('🍿 详情', `
+      ${r.image ? `
+        <img class="ent-detail__cover" src="${r.image}" onclick="UI.imagePreview(this.src)">
+      ` : ''}
+      <div class="ent-detail__title">${this._esc(r.title)}</div>
+      <div class="ent-detail__badges">
+        ${board ? `<span class="ent-badge">${this._esc(board.icon || '🍿')} ${this._esc(board.name)}</span>` : ''}
+        ${r.episodes ? `<span class="ent-badge">📺 ${r.episodes} 集</span>` : ''}
+        ${r.rewatch ? `<span class="ent-badge ent-badge--rose">🔁 ${this._esc(r.rewatch)}</span>` : ''}
+      </div>
+      <div class="ent-detail__stars">${this._starsHtml(r.rating)}${r.rating ? `<span class="ent-detail__score">${r.rating}.0</span>` : '<span class="text-faint text-xs">未评分</span>'}</div>
+      ${(r.tags && r.tags.length) ? `
+        <div class="ent-detail__tags">
+          ${r.tags.map(t => `<span class="ent-mini-chip">${this._esc(t)}</span>`).join('')}
+        </div>` : ''}
+      ${r.note ? `
+        <div class="ent-detail__note">
+          <div class="text-xs text-faint mb-1">📝 记录</div>
+          <div class="ent-note-text">${this._esc(r.note)}</div>
+        </div>` : ''}
+      <div class="text-faint text-xs mt-2">
+        ${r.created_at ? `创建于 ${this._fmtTime(r.created_at)}` : ''}
+        ${r.updated_at && r.updated_at !== r.created_at ? ` · 更新于 ${this._fmtTime(r.updated_at)}` : ''}
+      </div>
+      <div class="flex gap-2 mt-4" style="justify-content:flex-end">
+        <button class="btn btn--sm" onclick="EntModule._editFromDetail('${r.id}')">✏️ 编辑</button>
+        <button class="btn btn--sm btn--accent" onclick="EntModule._deleteRecord('${r.id}', true)">🗑️ 删除</button>
+        <button class="btn btn--sm btn--ghost" onclick="UI.closeModal()">关闭</button>
+      </div>
+    `);
+  },
+
+  async _editFromDetail(id) {
+    const r = await DB.get('ent_records', id);
+    if (!r) return;
+    UI.closeModal();
+    await this._sleep(120);   // 避开 UI 系列弹窗轮询竞态
+    this.openForm(r.board_id, id);
+  },
+
+  // ============ 添加 / 编辑表单 ============
+  async openForm(boardId, id = null) {
+    let record = null;
+    if (id) {
+      record = await DB.get('ent_records', id);
+      if (!record) { UI.toast('记录不存在', 'error'); return; }
+    }
+    const board = this.state.boards.find(b => b.id === boardId);
+    this._formBoardId = boardId;
+    this._formRating = record && record.rating ? record.rating : 0;
+    this._formTags = new Set(record && record.tags ? record.tags : []);
+    this._tmpImage = record && record.image ? record.image : null;
+
+    const historyTags = await this._collectTags();
+    this._formTagPool = this._mergeTags(this.PRESET_TAGS, historyTags, [...this._formTags]);
+
+    UI.modal(record ? '✏️ 编辑记录' : `＋ 添加到「${this._esc(board ? board.name : '')}」`, `
+      <div class="field">
+        <label class="field__label">封面图片（选填，自动压缩适配）</label>
+        <div id="entCoverArea"></div>
+      </div>
+      <div class="field">
+        <label class="field__label">名字 *</label>
+        <input class="input" id="entTitle" placeholder="如：短剧 / 电影 / 综艺名" maxlength="60" value="${this._escAttr(record ? record.title || '' : '')}">
+      </div>
+      <div class="grid grid-2">
+        <div class="field">
+          <label class="field__label">集数</label>
+          <input class="input" id="entEpisodes" type="number" inputmode="numeric" min="0" placeholder="如：80" value="${record && record.episodes ? record.episodes : ''}">
+        </div>
+        <div class="field">
+          <label class="field__label">重复刷（选填）</label>
+          <input class="input" id="entRewatch" placeholder="如：2、3、N刷" maxlength="10" value="${this._escAttr(record ? record.rewatch || '' : '')}">
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label">分类标签（可多选，可自定义）</label>
+        <div class="tag-select" id="entTagBox"></div>
+        <div class="ent-tag-add mt-2">
+          <input class="input ent-tag-add__input" id="entNewTag" placeholder="自定义分类，输入后回车或点添加" maxlength="12"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();EntModule._addCustomTag()}">
+          <button type="button" class="btn btn--sm" onclick="EntModule._addCustomTag()">添加</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label">评分（点击星星）</label>
+        <div class="ent-stars-input" id="entStarsInput"></div>
+      </div>
+      <div class="field">
+        <label class="field__label">关于它的记录（选填，观后感 / 剧情备注等）</label>
+        <textarea class="textarea" id="entNote" placeholder="自由记录…">${this._esc(record ? record.note || '' : '')}</textarea>
+      </div>
+      <div class="flex gap-3" style="justify-content:flex-end">
+        <button class="btn" onclick="UI.closeModal()">取消</button>
+        <button class="btn btn--primary" onclick="EntModule._saveForm('${id || ''}')">保存</button>
+      </div>
+    `);
+    this._renderCoverArea();
+    this._renderTagBox();
+    this._renderStarsInput();
+  },
+
+  // 表单内：封面选择 / 预览 / 移除
+  _renderCoverArea() {
+    const el = document.getElementById('entCoverArea');
+    if (!el) return;
+    el.innerHTML = `
+      <div class="ent-form-cover" onclick="EntModule._pickImage()">
+        ${this._tmpImage
+          ? `<img src="${this._tmpImage}" alt="封面预览">`
+          : `<div class="ent-form-cover__empty"><span class="ent-form-cover__icon">📷</span><span>点击选择图片</span></div>`}
+      </div>
+      <input type="file" id="entFileInput" accept="image/*" style="display:none" onchange="EntModule._onImageSelected(this)">
+      <div class="flex gap-2 mt-2">
+        <button type="button" class="btn btn--sm" onclick="EntModule._pickImage()">📷 选择图片</button>
+        ${this._tmpImage ? `<button type="button" class="btn btn--sm btn--ghost" onclick="EntModule._removeImage()">🗑️ 移除图片</button>` : ''}
+      </div>
+    `;
+  },
+
+  _pickImage() {
+    const input = document.getElementById('entFileInput');
+    if (input) input.click();
+  },
+
+  async _onImageSelected(input) {
+    const f = input.files && input.files[0];
+    if (!f) return;
+    if (!f.type || !f.type.startsWith('image/')) {
+      UI.toast('请选择图片文件', 'error');
+      input.value = '';
+      return;
+    }
+    try {
+      this._tmpImage = await this._compressImage(f);
+    } catch (e) {
+      // 压缩失败时读原图兜底，保证可用
+      try {
+        this._tmpImage = await new Promise((resolve, reject) => {
+          const rd = new FileReader();
+          rd.onload = () => resolve(rd.result);
+          rd.onerror = reject;
+          rd.readAsDataURL(f);
+        });
+      } catch (e2) {
+        UI.toast('图片读取失败', 'error');
+        input.value = '';
+        return;
+      }
+    }
+    input.value = '';
+    this._renderCoverArea();
+    UI.toast('图片已压缩适配', 'success', 1500);
+  },
+
+  _removeImage() {
+    this._tmpImage = null;
+    this._renderCoverArea();
+  },
+
+  // canvas 压缩：最长边 480px，JPEG 质量 0.82（PNG 透明底转白）
+  _compressImage(file, maxSide = 480, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            let w = img.naturalWidth || img.width;
+            let h = img.naturalHeight || img.height;
+            if (!w || !h) { reject(new Error('bad image')); return; }
+            const scale = Math.min(1, maxSide / Math.max(w, h));
+            w = Math.max(1, Math.round(w * scale));
+            h = Math.max(1, Math.round(h * scale));
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } catch (e) { reject(e); }
+        };
+        img.onerror = () => reject(new Error('image decode failed'));
+        img.src = reader.result;
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  },
+
+  // 表单内：分类标签
+  _renderTagBox() {
+    const el = document.getElementById('entTagBox');
+    if (!el) return;
+    el.innerHTML = this._formTagPool.map((t, i) => `
+      <div class="tag-chip ${this._formTags.has(t) ? 'active' : ''}"
+           onclick="EntModule._toggleTagAt(${i})">${this._esc(t)}</div>
+    `).join('');
+  },
+
+  _toggleTagAt(i) {
+    const t = this._formTagPool[i];
+    if (t == null) return;
+    if (this._formTags.has(t)) this._formTags.delete(t);
+    else this._formTags.add(t);
+    this._renderTagBox();
+  },
+
+  _addCustomTag() {
+    const inp = document.getElementById('entNewTag');
+    if (!inp) return;
+    const name = inp.value.trim();
+    if (!name) { UI.toast('请输入分类名', 'error'); return; }
+    if (!this._formTagPool.includes(name)) this._formTagPool.push(name);
+    this._formTags.add(name);
+    inp.value = '';
+    this._renderTagBox();
+  },
+
+  // 表单内：评分星星
+  _renderStarsInput() {
+    const el = document.getElementById('entStarsInput');
+    if (!el) return;
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+      html += `<button type="button" class="ent-star-btn ${i <= this._formRating ? 'ent-star-btn--on' : ''}"
+                       onclick="EntModule._setRating(${i})" title="${i} 星">★</button>`;
+    }
+    if (this._formRating > 0) {
+      html += `<button type="button" class="ent-star-clear" onclick="EntModule._setRating(0)">清除</button>`;
+    }
+    el.innerHTML = html;
+  },
+
+  _setRating(n) {
+    this._formRating = Math.max(0, Math.min(5, n | 0));
+    this._renderStarsInput();
+  },
+
+  async _saveForm(id) {
+    const title = document.getElementById('entTitle').value.trim();
+    if (!title) { UI.toast('请填写名字', 'error'); return; }
+    const epsRaw = (document.getElementById('entEpisodes').value || '').trim();
+    const eps = epsRaw === '' ? null : (parseInt(epsRaw, 10) >= 0 ? parseInt(epsRaw, 10) : null);
+    const record = {
+      board_id: this._formBoardId,
+      title,
+      episodes: eps,
+      tags: [...this._formTags],
+      rating: this._formRating || 0,
+      rewatch: (document.getElementById('entRewatch').value || '').trim(),
+      note: (document.getElementById('entNote').value || '').trim(),
+      image: this._tmpImage || null,
+    };
+    if (id) record.id = id;
+    await DB.save('ent_records', record);
+    UI.closeModal();
+    UI.toast(id ? '已更新' : '已添加', 'success');
+    this.render();
+  },
+
+  async _deleteRecord(id, fromDetail = false) {
+    const ok = await UI.confirm('删除这条记录？图片和内容将一并删除，不可恢复。', { okText: '删除' });
+    await this._sleep(120);   // confirm 会关闭底层弹窗，等轮询结束再操作
+    if (!ok) {
+      if (fromDetail) this.openDetail(id);
+      return;
+    }
+    await DB.hardDelete('ent_records', id);
+    UI.toast('已删除', 'success');
+    this.render();
+  },
+
+  // ============ 子板块管理 ============
+  _switchBoard(id) {
+    this.state.currentBoardId = id;
+    this.state.boardKw = '';   // 切换板块清空板块内搜索词
+    this._renderTabs();
+    this._renderContent();
+  },
+
+  async _boardManager() {
+    const counts = await this._boardCounts();
+    UI.modal('⚙️ 管理子板块', `
+      ${this.state.boards.map(b => `
+        <div class="list-item">
+          <span style="font-size:22px">${this._esc(b.icon || '🍿')}</span>
+          <div class="list-item__main">
+            <div class="list-item__title">${this._esc(b.name)}</div>
+            <div class="list-item__sub">${counts[b.id] || 0} 条记录</div>
+          </div>
+          <button class="btn btn--sm btn--ghost" onclick="EntModule.renameBoard('${b.id}')">✏️</button>
+          <button class="btn btn--sm btn--ghost" onclick="EntModule.deleteBoard('${b.id}')">🗑️</button>
+        </div>
+      `).join('')}
+      <button class="btn btn--primary btn--block mt-3" onclick="EntModule.addBoard()">➕ 新建子板块</button>
+    `);
+  },
+
+  addBoard() {
+    this._newBoardIcon = '🍿';
+    UI.modal('➕ 新建子板块', `
+      <div class="field">
+        <label class="field__label">板块名称 *</label>
+        <input class="input" id="entBoardName" placeholder="如：电影、综艺、追剧…" maxlength="12">
+      </div>
+      <div class="field">
+        <label class="field__label">图标</label>
+        <div class="ent-icon-row" id="entIconRow"></div>
+      </div>
+      <div class="flex gap-3" style="justify-content:flex-end">
+        <button class="btn" onclick="UI.closeModal()">取消</button>
+        <button class="btn btn--primary" onclick="EntModule._saveBoard()">创建</button>
+      </div>
+    `);
+    this._renderIconRow();
+  },
+
+  _renderIconRow() {
+    const el = document.getElementById('entIconRow');
+    if (!el) return;
+    el.innerHTML = this.BOARD_ICONS.map((ic, i) => `
+      <button type="button" class="ent-icon-opt ${ic === this._newBoardIcon ? 'ent-icon-opt--active' : ''}"
+              onclick="EntModule._pickIcon(${i})">${ic}</button>
+    `).join('');
+  },
+
+  _pickIcon(i) {
+    this._newBoardIcon = this.BOARD_ICONS[i] || '🍿';
+    this._renderIconRow();
+  },
+
+  async _saveBoard() {
+    const name = (document.getElementById('entBoardName').value || '').trim();
+    if (!name) { UI.toast('请填写板块名称', 'error'); return; }
+    if (this.state.boards.some(b => b.name === name)) { UI.toast('已有同名子板块', 'error'); return; }
+    const maxSort = this.state.boards.reduce((m, b) => Math.max(m, b.sort || 0), 0);
+    const board = await DB.save('ent_boards', {
+      name,
+      icon: this._newBoardIcon || '🍿',
+      sort: maxSort + 1,
+    });
+    UI.closeModal();
+    UI.toast('子板块已创建', 'success');
+    this.state.currentBoardId = board.id;
+    this.state.boardKw = '';
+    this.render();
+  },
+
+  renameBoard(id) {
+    const b = this.state.boards.find(x => x.id === id);
+    if (!b) return;
+    UI.modal('✏️ 重命名子板块', `
+      <div class="field">
+        <label class="field__label">板块名称</label>
+        <input class="input" id="entBoardRename" maxlength="12" value="${this._escAttr(b.name)}">
+      </div>
+      <div class="flex gap-3" style="justify-content:flex-end">
+        <button class="btn" onclick="UI.closeModal()">取消</button>
+        <button class="btn btn--primary" onclick="EntModule._doRename('${id}')">保存</button>
+      </div>
+    `);
+  },
+
+  async _doRename(id) {
+    const name = (document.getElementById('entBoardRename').value || '').trim();
+    if (!name) { UI.toast('名称不能为空', 'error'); return; }
+    if (this.state.boards.some(x => x.id !== id && x.name === name)) { UI.toast('已有同名子板块', 'error'); return; }
+    const b = await DB.get('ent_boards', id);
+    if (!b) return;
+    b.name = name;
+    await DB.put('ent_boards', b);
+    UI.closeModal();
+    UI.toast('已重命名', 'success');
+    this.render();
+  },
+
+  async deleteBoard(id) {
+    const b = this.state.boards.find(x => x.id === id);
+    if (!b) return;
+    if (this.state.boards.length <= 1) { UI.toast('至少保留一个子板块', 'error'); return; }
+    const recs = (await DB.list('ent_records')).filter(r => r.board_id === id && !r.deleted_at);
+    const ok = await UI.confirm(`删除子板块「${this._esc(b.name)}」及其中 ${recs.length} 条记录？不可恢复。`, { okText: '删除' });
+    await this._sleep(120);
+    if (!ok) { this._boardManager(); return; }
+    for (const r of recs) await DB.hardDelete('ent_records', r.id);
+    await DB.hardDelete('ent_boards', id);
+    if (this.state.currentBoardId === id) {
+      this.state.currentBoardId = null;
+      this.state.boardKw = '';
+    }
+    UI.toast('子板块已删除', 'success');
+    this.render();
+  },
+
+  // ============ 工具 ============
+  _statLine(records) {
+    const n = records.length;
+    if (!n) return '还没有记录，点右上角「＋ 添加」开始吧';
+    const rated = records.filter(r => r.rating > 0);
+    const avg = rated.length ? (rated.reduce((s, r) => s + (r.rating || 0), 0) / rated.length).toFixed(1) : '-';
+    const eps = records.reduce((s, r) => s + (r.episodes || 0), 0);
+    return `📊 共 ${n} 条 · 平均 ★${avg}${eps ? ` · 累计 ${eps} 集` : ''}`;
+  },
+
+  _starsHtml(rating) {
+    const r = Math.max(0, Math.min(5, rating || 0));
+    let s = '';
+    for (let i = 1; i <= 5; i++) {
+      s += `<span class="ent-star ${i <= r ? 'ent-star--on' : ''}">★</span>`;
+    }
+    return s;
+  },
+
+  // HTML 转义
+  _esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  },
+
+  // 属性值转义（value="" 场景）
+  _escAttr(s) {
+    return this._esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  },
+
+  // 转义 + 关键词高亮（<mark> 粉色高亮）
+  _hl(text, kw) {
+    const safe = this._esc(text);
+    kw = (kw || '').trim();
+    if (!kw) return safe;
+    // 关键词同样转义，保证在转义后的文本域内匹配（如搜 & 能命中 &amp;）
+    const target = this._esc(kw);
+    if (!target) return safe;
+    const re = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try {
+      return safe.replace(new RegExp(`(${re})`, 'gi'), '<mark class="ent-hl">$1</mark>');
+    } catch (e) {
+      return safe;
+    }
+  },
+
+  _fmtTime(iso) {
+    if (!iso) return '';
+    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!m) return String(iso).slice(0, 16);
+    return `${m[1]}/${m[2]}/${m[3]} ${m[4]}:${m[5]}`;
+  },
+
+  // 摘要：取前 n 字符 + 省略号（纯文本层截断，保证后续可安全高亮）
+  _brief(s, n = 50) {
+    s = String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+    return s.length > n ? s.slice(0, n) + '…' : s;
+  },
+
+  _sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  },
+};
 </script>
 </body>
 </html>
