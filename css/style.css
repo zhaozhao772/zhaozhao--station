@@ -1410,3 +1410,46 @@ mark.ent-hl {
   font-size: 11px; color: var(--color-text-faint); margin-top: 5px; line-height: 1.5;
   display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
 }
+/* ===== 两级分类（subtype） ===== */
+.ent-subtype-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ent-subtype-pill {
+  padding: 8px 22px; border-radius: 999px; font-size: var(--font-size-base); font-weight: 600;
+  background: var(--color-surface-blur); border: 1px solid var(--color-border);
+  color: var(--color-text-soft); transition: all .18s;
+}
+.ent-subtype-pill:hover { border-color: var(--color-rose); transform: translateY(-1px); }
+.ent-subtype-pill--active {
+  background: linear-gradient(135deg, var(--color-rose-soft), var(--color-rose));
+  border-color: transparent; color: #fff;
+  box-shadow: 0 3px 10px rgba(241,148,166,0.35);
+}
+
+/* 卡片上的大类角标 */
+.ent-card__subtype {
+  display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px;
+  font-weight: 600; margin-right: 4px;
+}
+.ent-card__subtype--ai { background: linear-gradient(135deg, rgba(187,164,217,0.25), rgba(187,164,217,0.45)); color: var(--color-primary); border: 1px solid rgba(187,164,217,0.5); }
+.ent-card__subtype--real { background: linear-gradient(135deg, rgba(248,197,206,0.35), rgba(241,148,166,0.35)); color: var(--color-accent); border: 1px solid rgba(241,148,166,0.5); }
+
+/* 详情里的大类标识 */
+.ent-detail__subtype {
+  display: inline-block; font-size: var(--font-size-xs); padding: 3px 11px; border-radius: 999px; font-weight: 600;
+}
+.ent-detail__subtype--ai { background: linear-gradient(135deg, var(--color-wisteria), var(--color-primary-soft)); color: #fff; }
+.ent-detail__subtype--real { background: linear-gradient(135deg, var(--color-rose-soft), var(--color-rose)); color: #fff; }
+
+/* 按大类分组的列表 */
+.ent-subgroup { margin-bottom: 8px; }
+.ent-subgroup__header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 4px 6px;
+  border-bottom: 1px dashed var(--color-divider);
+  margin-bottom: 10px;
+}
+.ent-subgroup__icon { font-size: 16px; }
+.ent-subgroup__title { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); }
+.ent-subgroup__count {
+  background: var(--color-divider); border-radius: 999px;
+  padding: 1px 8px; font-size: var(--font-size-xs); color: var(--color-text-faint);
+}
