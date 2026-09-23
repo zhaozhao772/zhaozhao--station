@@ -13,11 +13,30 @@ const EntModule = {
     globalKw: '',          // 顶部一键检索关键词
     globalFilter: 'all',   // 一键检索结果的板块筛选（'all' | boardId）
     boardKw: '',           // 当前子板块内搜索关键词
+    subtypeFilter: 'all',  // 当前子板块内的大类筛选（'all' | 大类名 | 'none'）
+    styleFilter: 'all',    // 当前子板块内的风格筛选（'all' | 风格名）
   },
 
   // 预置常用分类（供选择，实际以用户点选/自定义为准）
   PRESET_TAGS: ['霸总', '穿越', '重生', '甜宠', '复仇', '逆袭', '古装', '现代', '玄幻', '悬疑', '萌宝', '战神', '先婚后爱', '马甲'],
   BOARD_ICONS: ['📺', '🍿', '🎬', '🎭', '🎤', '🎮', '🎵', '💃', '🎪', '⭐'],
+
+  // 两级分类（红果短剧等可启用）：第一级大类 + 各类的风格标签池
+  SUBTYPE_DEFS: {
+    // 板块 id: { categories: [大类1, 大类2], styles: { 大类1: [风格…], 大类2: [风格…] } }
+    hongguo: {
+      categories: ['AI', '真人'],
+      styles: {
+        AI:   ['古风', '现代', '玄幻', '悬疑', '科幻', '校园', '都市'],
+        真人: ['甜宠', '复仇', '穿越', '重生', '霸总', '逆袭', '萌宝', '古装', '马甲', '战神'],
+      },
+    },
+  },
+
+  // 检查板块是否启用了两级分类（按需启用）
+  isTwoLevel(boardId) {
+    return !!(this.SUBTYPE_DEFS[boardId] && this.SUBTYPE_DEFS[boardId].categories);
+  },
 
   // ============ 入口 ============
   async render() {
@@ -119,15 +138,23 @@ const EntModule = {
     }
   },
 
-  // 当前子板块视图（含板块内独立搜索框）
+  // 当前子板块视图（含板块内独立搜索框 + 两级分类筛选）
   async _renderBoardView() {
     const board = this.state.boards.find(b => b.id === this.state.currentBoardId);
     if (!board) return UI.empty('🍿', '还没有子板块，点击下方 ➕ 新建一个');
-    const recs = (await DB.list('ent_records'))
+    const all = (await DB.list('ent_records'))
       .filter(r => !r.deleted_at && r.board_id === board.id)
       .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
     const kw = this.state.boardKw.trim();
-    const shown = kw ? recs.filter(r => this._match(r, kw)) : recs;
+    const matched = kw ? all.filter(r => this._match(r, kw)) : all;
+    // 大类/风格筛选（在关键词搜索结果基础上再过滤）
+    const twoLevel = this.isTwoLevel(board.id);
+    const filtered = this._applySubtypeFilter(matched, board.id);
+    const grouped = twoLevel && this.state.subtypeFilter === 'all' && !kw
+      ? this._groupBySubtype(filtered, board.id)
+      : null;
+    const total = matched.length;
+    const showTotal = twoLevel ? filtered.length : total;
     return `
       <div class="ent-board-head mb-2">
         <input id="entBoardSearch" class="input ent-searchbar__input"
@@ -136,12 +163,115 @@ const EntModule = {
                oninput="EntModule.onBoardSearch(this.value)">
         <button class="btn btn--primary btn--sm" style="white-space:nowrap" onclick="EntModule.openForm('${board.id}')">＋ 添加</button>
       </div>
-      ${kw ? `<div class="ent-hint mb-2">「${this._esc(board.name)}」内搜到 ${shown.length} 条</div>` : `<div class="ent-hint mb-2">${this._statLine(recs)}</div>`}
-      <div id="entBoardList">${this._renderCardList(shown, kw, false)}</div>
+      ${twoLevel ? this._renderSubtypeFilterBar(board.id) : ''}
+      ${kw || this.state.subtypeFilter !== 'all' || this.state.styleFilter !== 'all'
+        ? `<div class="ent-hint mb-2">搜到 ${showTotal} / ${total} 条</div>`
+        : `<div class="ent-hint mb-2">${this._statLine(all)}</div>`}
+      <div id="entBoardList">${grouped ? this._renderGroupedList(grouped, board.id) : this._renderCardList(filtered, kw, false)}</div>
     `;
   },
 
-  // 一键检索结果视图（跨所有子板块 + 板块筛选）
+  // 两级分类的筛选条（AI / 真人 + 风格 chips）
+  _renderSubtypeFilterBar(boardId) {
+    const def = this.SUBTYPE_DEFS[boardId];
+    if (!def) return '';
+    const sub = this.state.subtypeFilter;
+    const sty = this.state.styleFilter;
+    const cats = ['all', ...def.categories];
+    const styles = sub !== 'all' && def.styles[sub] ? def.styles[sub] : [];
+    return `
+      <div class="ent-filter-bar mb-2">
+        ${cats.map(c => `
+          <button class="ent-filter-chip ${sub === c ? 'ent-filter-chip--active' : ''}"
+                  onclick="EntModule.setSubtypeFilter('${c}')">${c === 'all' ? '全部大类' : this._esc(c)}</button>
+        `).join('')}
+        ${def.categories.map(c => `
+          <button class="ent-filter-chip ent-filter-chip--sub ${sub === 'none' ? '' : 'ent-filter-chip--active'}"
+                  style="display:${sub === c || sub === 'all' ? '' : 'none'}"
+                  onclick="EntModule.setSubtypeFilter('none')">未分类</button>
+        `).join('')}
+      </div>
+      ${styles.length ? `
+        <div class="ent-filter-bar mb-2">
+          ${styles.map(s => `
+            <button class="ent-filter-chip ${sty === s ? 'ent-filter-chip--active' : ''}"
+                    onclick="EntModule.setStyleFilter('${this._escAttr(s)}')">${this._esc(s)}</button>
+          `).join('')}
+          ${sty !== 'all' ? `<button class="ent-filter-chip ent-filter-chip--sub" onclick="EntModule.setStyleFilter('all')">✕ 风格</button>` : ''}
+        </div>
+      ` : ''}
+    `;
+  },
+
+  setSubtypeFilter(v) {
+    this.state.subtypeFilter = v;
+    this.state.styleFilter = 'all';   // 切换大类时清空风格
+    this._renderContent();
+  },
+
+  setStyleFilter(v) {
+    this.state.styleFilter = v;
+    this._renderContent();
+  },
+
+  // 应用大类/风格筛选
+  _applySubtypeFilter(records, boardId) {
+    if (!this.isTwoLevel(boardId)) return records;
+    const sub = this.state.subtypeFilter;
+    const sty = this.state.styleFilter;
+    return records.filter(r => {
+      if (sub === 'all') { /* 不过滤大类 */ }
+      else if (sub === 'none') { if (r.subtype) return false; }
+      else if (r.subtype !== sub) { return false; }
+      if (sty !== 'all') { if (!(r.styles || []).includes(sty)) return false; }
+      return true;
+    });
+  },
+
+  // 按大类分组（仅在未筛选 + 未搜索时启用）
+  _groupBySubtype(records, boardId) {
+    const def = this.SUBTYPE_DEFS[boardId];
+    if (!def) return null;
+    const groups = {};
+    def.categories.forEach(c => { groups[c] = []; });
+    groups['未分类'] = [];
+    records.forEach(r => {
+      if (r.subtype && groups[r.subtype]) groups[r.subtype].push(r);
+      else groups['未分类'].push(r);
+    });
+    return groups;
+  },
+
+  // 渲染分组列表（按大类分块）
+  _renderGroupedList(groups, boardId) {
+    let html = '';
+    const order = [...(this.SUBTYPE_DEFS[boardId].categories), '未分类'];
+    order.forEach(cat => {
+      const list = groups[cat] || [];
+      const icon = cat === 'AI' ? '🤖' : cat === '真人' ? '👤' : '✨';
+      html += `
+        <div class="ent-subgroup">
+          <div class="ent-subgroup__header">
+            <span class="ent-subgroup__icon">${icon}</span>
+            <span class="ent-subgroup__title">${this._esc(cat)}</span>
+            <span class="ent-subgroup__count">${list.length}</span>
+          </div>
+          ${list.length === 0
+            ? `<div class="text-faint text-xs" style="padding:6px 4px 10px">暂无</div>`
+            : `<div class="ent-grid mb-3">${list.map(r => this._renderCard(r, this.state.boardKw, false, this._boardMap())).join('')}</div>`}
+        </div>
+      `;
+    });
+    return html;
+  },
+
+  _boardMap() {
+    const m = {};
+    this.state.boards.forEach(b => { m[b.id] = b; });
+    return m;
+  },
+
+  // 一键检索结果视图（跨所有子板块 + 板块筛选 + 大类筛选）
   async _renderGlobalResults() {
     const kw = this.state.globalKw.trim();
     const all = (await DB.list('ent_records'))
@@ -155,6 +285,8 @@ const EntModule = {
       const b = this.state.boards.find(x => x.id === id);
       return b ? `${b.icon || '🍿'} ${b.name}` : '未知板块';
     };
+    // 当当前筛选为某个启用两级分类的板块，且尚未细化大类筛选时，加 AI/真人 二次筛选条
+    const twoLevel = filter !== 'all' && this.isTwoLevel(filter);
     return `
       <div class="ent-filter-bar mb-2">
         <button class="ent-filter-chip ${filter === 'all' ? 'ent-filter-chip--active' : ''}"
@@ -164,6 +296,7 @@ const EntModule = {
                   onclick="EntModule.setGlobalFilter('${b.id}')">${this._esc(b.icon || '🍿')} ${this._esc(b.name)} ${counts[b.id] || 0}</button>
         `).join('')}
       </div>
+      ${twoLevel ? this._renderSubtypeFilterBar(filter) : ''}
       <div class="ent-hint mb-2">跨子板块搜到 ${all.length} 条${filter !== 'all' ? `，当前显示「${this._esc(boardName(filter).replace(/^[^\s]+\s/, ''))}」${shown.length} 条` : ''}</div>
       <div id="entBoardList">${this._renderCardList(shown, kw, true)}</div>
     `;
@@ -187,6 +320,7 @@ const EntModule = {
 
   _renderCard(r, kw, showBoard, boardMap) {
     const board = boardMap[r.board_id];
+    const subtypeBadge = r.subtype ? `<span class="ent-card__subtype ent-card__subtype--${r.subtype === 'AI' ? 'ai' : 'real'}">${r.subtype === 'AI' ? '🤖 AI' : '👤 真人'}</span>` : '';
     return `
       <div class="ent-card" onclick="EntModule.openDetail('${r.id}')">
         <div class="ent-card__cover">
@@ -201,10 +335,10 @@ const EntModule = {
             ${r.episodes ? `<span class="ent-card__eps">📺 ${r.episodes}集</span>` : ''}
             <span class="ent-card__stars">${this._starsHtml(r.rating)}</span>
           </div>
-          ${(r.tags && r.tags.length) ? `
+          ${(r.styles && r.styles.length) ? `
             <div class="ent-card__tags">
-              ${r.tags.map(t => `<span class="ent-mini-chip">${this._hl(t, kw)}</span>`).join('')}
-            </div>` : ''}
+              ${subtypeBadge}${r.styles.map(t => `<span class="ent-mini-chip">${this._hl(t, kw)}</span>`).join('')}
+            </div>` : (subtypeBadge ? `<div class="ent-card__tags">${subtypeBadge}</div>` : '')}
           ${r.note ? `<div class="ent-card__note">${this._hl(this._brief(r.note, 50), kw)}</div>` : ''}
           ${showBoard && board ? `<div class="ent-card__board">${this._esc(board.icon || '🍿')} ${this._esc(board.name)}</div>` : ''}
         </div>
@@ -261,13 +395,15 @@ const EntModule = {
     }
   },
 
-  // 匹配：名字 / 分类标签 / 记录内容（大小写不敏感）
+  // 匹配：名字 / 分类标签 / 风格 / 一级大类 / 记录内容（大小写不敏感）
   _match(r, kw) {
     if (!kw) return true;
     kw = String(kw).trim().toLowerCase();
     if (!kw) return true;
     if ((r.title || '').toLowerCase().includes(kw)) return true;
     if ((r.tags || []).some(t => String(t).toLowerCase().includes(kw))) return true;
+    if ((r.styles || []).some(s => String(s).toLowerCase().includes(kw))) return true;
+    if ((r.subtype || '').toLowerCase().includes(kw)) return true;
     if ((r.note || '').toLowerCase().includes(kw)) return true;
     return false;
   },
@@ -288,10 +424,14 @@ const EntModule = {
         ${r.rewatch ? `<span class="ent-badge ent-badge--rose">🔁 ${this._esc(r.rewatch)}</span>` : ''}
       </div>
       <div class="ent-detail__stars">${this._starsHtml(r.rating)}${r.rating ? `<span class="ent-detail__score">${r.rating}.0</span>` : '<span class="text-faint text-xs">未评分</span>'}</div>
-      ${(r.tags && r.tags.length) ? `
+      ${(r.styles && r.styles.length) ? `
         <div class="ent-detail__tags">
-          ${r.tags.map(t => `<span class="ent-mini-chip">${this._esc(t)}</span>`).join('')}
-        </div>` : ''}
+          ${r.subtype ? `<span class="ent-detail__subtype ent-detail__subtype--${r.subtype === 'AI' ? 'ai' : 'real'}">${r.subtype === 'AI' ? '🤖 AI' : '👤 真人'}</span>` : ''}
+          ${r.styles.map(t => `<span class="ent-mini-chip">${this._esc(t)}</span>`).join('')}
+        </div>` : (r.subtype ? `
+        <div class="ent-detail__tags">
+          <span class="ent-detail__subtype ent-detail__subtype--${r.subtype === 'AI' ? 'ai' : 'real'}">${r.subtype === 'AI' ? '🤖 AI' : '👤 真人'}</span>
+        </div>` : '')}
       ${r.note ? `
         <div class="ent-detail__note">
           <div class="text-xs text-faint mb-1">📝 记录</div>
@@ -328,10 +468,15 @@ const EntModule = {
     this._formBoardId = boardId;
     this._formRating = record && record.rating ? record.rating : 0;
     this._formTags = new Set(record && record.tags ? record.tags : []);
+    this._formSubtype = record && record.subtype ? record.subtype : '';   // AI / 真人 / ''
+    this._formStyles = new Set(record && record.styles ? record.styles : []);   // 风格标签
     this._tmpImage = record && record.image ? record.image : null;
 
     const historyTags = await this._collectTags();
-    this._formTagPool = this._mergeTags(this.PRESET_TAGS, historyTags, [...this._formTags]);
+    this._formTagPool = this._mergeTags(this.PRESET_TAGS, historyTags, [...this._formTags], [...this._formStyles]);
+
+    const twoLevel = this.isTwoLevel(boardId);
+    const subDef = twoLevel ? this.SUBTYPE_DEFS[boardId] : null;
 
     UI.modal(record ? '✏️ 编辑记录' : `＋ 添加到「${this._esc(board ? board.name : '')}」`, `
       <div class="field">
@@ -352,6 +497,27 @@ const EntModule = {
           <input class="input" id="entRewatch" placeholder="如：2、3、N刷" maxlength="10" value="${this._escAttr(record ? record.rewatch || '' : '')}">
         </div>
       </div>
+      ${twoLevel ? `
+      <div class="field">
+        <label class="field__label">分类大类 *</label>
+        <div class="ent-subtype-row" id="entSubtypeRow">
+          ${subDef.categories.map(c => `
+            <button type="button" class="ent-subtype-pill ${this._formSubtype === c ? 'ent-subtype-pill--active' : ''}"
+                    onclick="EntModule._pickSubtype('${c}')">${this._esc(c)}</button>
+          `).join('')}
+        </div>
+        <div class="field__hint">先选大类（AI / 真人），再选下方风格</div>
+      </div>
+      <div class="field" id="entStylesField" style="${this._formSubtype ? '' : 'opacity:0.5;pointer-events:none'}">
+        <label class="field__label">风格标签（可多选，可自定义）</label>
+        <div class="tag-select" id="entStylesBox"></div>
+        <div class="ent-tag-add mt-2">
+          <input class="input ent-tag-add__input" id="entNewStyle" placeholder="自定义风格，输入后回车或点添加" maxlength="12"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();EntModule._addCustomStyle()}">
+          <button type="button" class="btn btn--sm" onclick="EntModule._addCustomStyle()">添加</button>
+        </div>
+      </div>
+      ` : ''}
       <div class="field">
         <label class="field__label">分类标签（可多选，可自定义）</label>
         <div class="tag-select" id="entTagBox"></div>
@@ -376,6 +542,7 @@ const EntModule = {
     `);
     this._renderCoverArea();
     this._renderTagBox();
+    if (this.isTwoLevel(this._formBoardId)) this._renderStylesBox();
     this._renderStarsInput();
   },
 
@@ -498,6 +665,55 @@ const EntModule = {
     this._renderTagBox();
   },
 
+  // 两级分类：大类切换（AI / 真人）
+  _pickSubtype(c) {
+    this._formSubtype = this._formSubtype === c ? '' : c;   // 点同一切除（可选）
+    // 切换大类时清空已选风格（风格属于不同语义类）
+    if (this._formSubtype) this._formStyles = new Set();
+    // 重绘大类胶囊
+    document.querySelectorAll('#entSubtypeRow .ent-subtype-pill').forEach(p => {
+      p.classList.toggle('ent-subtype-pill--active', p.textContent.trim() === this._formSubtype);
+    });
+    // 解锁/锁定风格区域
+    const field = document.getElementById('entStylesField');
+    if (field) {
+      if (this._formSubtype) { field.style.opacity = ''; field.style.pointerEvents = ''; }
+      else { field.style.opacity = '0.5'; field.style.pointerEvents = 'none'; }
+    }
+    this._renderStylesBox();
+  },
+
+  // 两级分类：风格 chips
+  _renderStylesBox() {
+    const el = document.getElementById('entStylesBox');
+    if (!el) return;
+    if (!this._formSubtype) { el.innerHTML = '<span class="text-faint text-xs">请先选择大类</span>'; return; }
+    const def = this.SUBTYPE_DEFS[this._formBoardId];
+    if (!def || !def.styles[this._formSubtype]) { el.innerHTML = ''; return; }
+    const pool = def.styles[this._formSubtype];
+    el.innerHTML = pool.map((t, i) => `
+      <div class="tag-chip ${this._formStyles.has(t) ? 'active' : ''}"
+           onclick="EntModule._toggleStyleAt('${this._escAttr(t)}', ${i})">${this._esc(t)}</div>
+    `).join('');
+  },
+
+  _toggleStyleAt(name, _i) {
+    if (this._formStyles.has(name)) this._formStyles.delete(name);
+    else this._formStyles.add(name);
+    this._renderStylesBox();
+  },
+
+  _addCustomStyle() {
+    const inp = document.getElementById('entNewStyle');
+    if (!inp) return;
+    const name = inp.value.trim();
+    if (!name) { UI.toast('请输入风格名', 'error'); return; }
+    if (!this._formSubtype) { UI.toast('请先选择大类', 'error'); return; }
+    this._formStyles.add(name);
+    inp.value = '';
+    this._renderStylesBox();
+  },
+
   // 表单内：评分星星
   _renderStarsInput() {
     const el = document.getElementById('entStarsInput');
@@ -521,6 +737,10 @@ const EntModule = {
   async _saveForm(id) {
     const title = document.getElementById('entTitle').value.trim();
     if (!title) { UI.toast('请填写名字', 'error'); return; }
+    // 两级分类板块必须选大类
+    if (this.isTwoLevel(this._formBoardId) && !this._formSubtype) {
+      UI.toast('请先选择分类大类（AI / 真人）', 'error'); return;
+    }
     const epsRaw = (document.getElementById('entEpisodes').value || '').trim();
     const eps = epsRaw === '' ? null : (parseInt(epsRaw, 10) >= 0 ? parseInt(epsRaw, 10) : null);
     const record = {
@@ -533,6 +753,11 @@ const EntModule = {
       note: (document.getElementById('entNote').value || '').trim(),
       image: this._tmpImage || null,
     };
+    // 两级分类字段（仅启用板块写入；其他板块保持 undefined 字段不存，避免数据噪音）
+    if (this.isTwoLevel(this._formBoardId)) {
+      record.subtype = this._formSubtype;
+      record.styles = [...this._formStyles];
+    }
     if (id) record.id = id;
     await DB.save('ent_records', record);
     UI.closeModal();
@@ -556,6 +781,8 @@ const EntModule = {
   _switchBoard(id) {
     this.state.currentBoardId = id;
     this.state.boardKw = '';   // 切换板块清空板块内搜索词
+    this.state.subtypeFilter = 'all';   // 切换清空筛选
+    this.state.styleFilter = 'all';
     this._renderTabs();
     this._renderContent();
   },
