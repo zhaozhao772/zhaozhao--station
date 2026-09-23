@@ -30,6 +30,7 @@ const App = {
     { id: 'reminders',  name: '提醒中心', icon: '🔔', privacy: false },
     { id: 'angel',      name: '天使数字解读', icon: '🔢', privacy: false },
     { id: 'sleep',      name: '早睡打卡', icon: '😴', privacy: false },
+    { id: 'entertainment', name: '娱乐', icon: '🍿', privacy: false },
   ],
 
   async init() {
@@ -196,6 +197,7 @@ const App = {
       reminders: () => RemindersModule.render(),
       angel: () => AngelModule.render(),
       sleep: () => SleepModule.render(),
+      entertainment: () => EntModule.render(),
       settings: () => SettingsModule.render(),
     };
     const fn = router[pageId];
