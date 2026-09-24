@@ -389,6 +389,14 @@ ul, ol { list-style: none; }
 }
 .chat-conn-pill:hover .chat-conn-pill__caret { transform: translateY(1px); }
 
+/* 「连接预设」胶囊与连接胶囊纵向堆叠（连接在上、预设在下，同款风格） */
+.chat-conn-stack {
+  flex-basis: 100%;
+  display: flex; flex-direction: column; gap: 8px; align-items: stretch;
+}
+.chat-conn-stack .chat-conn-pill { width: 100%; justify-content: center; text-align: center; }
+.chat-preset-pill:hover { border-color: var(--color-wisteria, var(--color-rose)); }
+
 /* 模型选项列表 */
 .model-opt-list { display: flex; flex-direction: column; gap: 8px; }
 .model-opt {
@@ -8204,6 +8212,12 @@ const AIChatModule = {
     this._state.currentConvId = convId;
     const messages = (await DB.list('ai_messages')).filter(m => !m.deleted_at && m.conversation_id === convId && !m.branch_archived);
     const conn = await DB.get('ai_connections', conv.connection_id);
+    // 当前预设名（实时直读；记录缺失/已删除时显示未使用）
+    let presetName = '未使用';
+    if (conv.preset_id) {
+      const cur = await DB.get('ai_resources', conv.preset_id);
+      if (cur && !cur.deleted_at) presetName = cur.name || '未命名预设';
+    }
     const html = `
       <div class="page">
         <div class="flex justify-between items-center mb-4">
@@ -8213,10 +8227,16 @@ const AIChatModule = {
 
         <!-- 工具栏 -->
         <div class="chat-toolbar flex gap-2 mb-3 flex-wrap">
-          <button class="chat-conn-pill" onclick="AIChatModule.showModelPicker('${convId}')" title="点击切换模型">
-            <span class="text-faint text-xs">连接: ${conn?.name||'-'} · 模型: <b>${conn?.model||'-'}</b></span>
-            <span class="chat-conn-pill__caret">▾</span>
-          </button>
+          <div class="chat-conn-stack">
+            <button class="chat-conn-pill" onclick="AIChatModule.showModelPicker('${convId}')" title="点击切换模型">
+              <span class="text-faint text-xs">连接: ${conn?.name||'-'} · 模型: <b>${conn?.model||'-'}</b></span>
+              <span class="chat-conn-pill__caret">▾</span>
+            </button>
+            <button class="chat-conn-pill chat-preset-pill" onclick="AIChatModule.showPresetPicker('${convId}')" title="点击切换预设（始终应用资料库最新版内容）">
+              <span class="text-faint text-xs">连接预设：<b>${this._escapeHtml(presetName)}</b></span>
+              <span class="chat-conn-pill__caret">▾</span>
+            </button>
+          </div>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showSearch('${convId}')">🔍 搜索</button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showBranchTree('${convId}')">🌿 分支</button>
           <button class="btn btn--sm btn--ghost" onclick="AIChatModule._showBookmarks('${convId}')">🔖 收藏</button>
@@ -8419,6 +8439,84 @@ const AIChatModule = {
       await this.openChat(convId);
     } else {
       this.render();
+    }
+  },
+
+  /* ============ 预设切换 ============ */
+  // 最新版保证（核心）：预设记录编辑时沿用同一 id（_saveResource editId 路径），
+  // IndexedDB 无缓存层 —— 本面板每次打开都 list 实时读取，
+  // pickPreset 选中后立即 DB.get 直读该 id 拿到刚保存的最新内容，
+  // 且对话上下文编排 _orchestrate 在每条消息发送时同样实时重读 conv.preset_id。
+  // 因此：修改预设 → 保存 → 回对话重新选择 → 立即生效最新版，绝不用旧版内容。
+
+  async showPresetPicker(convId) {
+    const conv = convId ? await DB.get('ai_conversations', convId) : null;
+    const presets = (await DB.list('ai_resources')).filter(r => r.kind === 'preset' && !r.deleted_at);
+    this._presetPickerConvId = convId || null;
+    const activeId = (conv && conv.preset_id) || '';
+
+    const fmtTs = (t) => (t || '').slice(0, 16).replace('T', ' ');
+    const rows = presets.map(p => {
+      const on = p.id === activeId;
+      return `
+        <div class="model-opt ${on ? 'model-opt--active' : ''}"
+             onclick="AIChatModule.pickPreset('${p.id}')">
+          <div class="model-opt__main">
+            <div class="model-opt__name">${this._escapeHtml(p.name || '未命名预设')}</div>
+            <div class="model-opt__sub">预设 · 选中即用最新版${p.updated_at ? ` · 更新于 ${fmtTs(p.updated_at)}` : ''}</div>
+          </div>
+          ${on ? '<span class="model-opt__check">✓</span>' : ''}
+        </div>
+      `;
+    }).join('');
+
+    const noneRow = `
+      <div class="model-opt ${!activeId ? 'model-opt--active' : ''}"
+           onclick="AIChatModule.pickPreset('')">
+        <div class="model-opt__main">
+          <div class="model-opt__name">不使用预设</div>
+          <div class="model-opt__sub">仅基础安全提示 / 角色卡 / 世界书</div>
+        </div>
+        ${!activeId ? '<span class="model-opt__check">✓</span>' : ''}
+      </div>
+    `;
+
+    const emptyHint = presets.length === 0 ? `
+      <div class="text-center" style="padding:16px 8px 4px">
+        <p class="text-soft text-sm mb-1">资料库还没有预设</p>
+        <p class="text-faint text-xs">可在「跨维沟通 → 资料库 → ⚙️ 预设」中文字新建或导入 JSON</p>
+      </div>` : '';
+
+    UI.modal('选择预设', `
+      <p class="text-faint text-xs mb-3">每次选择都会实时读取预设库最新内容，选择后立即生效并记住</p>
+      <div class="model-opt-list">${noneRow}${rows}</div>
+      ${emptyHint}
+      <div class="flex gap-3 mt-3" style="justify-content:flex-end">
+        <button class="btn btn--sm" onclick="UI.closeModal()">关闭</button>
+      </div>
+    `, { closeOnOutside: true });
+  },
+
+  // 切换预设：写回会话 preset_id（不动任何消息），并实时直读确认最新内容
+  async pickPreset(presetId) {
+    const convId = this._presetPickerConvId || this._currentConvId;
+    let presetName = '';
+    if (presetId) {
+      // 直读 IndexedDB：编辑预设沿用同一 id，此处拿到的必是刚保存的最新版本
+      const preset = await DB.get('ai_resources', presetId);
+      if (!preset || preset.deleted_at) { UI.toast('预设不存在或已删除', 'error'); return; }
+      presetName = preset.name || '未命名预设';
+    }
+    if (convId) {
+      const conv = await DB.get('ai_conversations', convId);
+      if (conv) { conv.preset_id = presetId || ''; await DB.save('ai_conversations', conv); }
+    }
+    UI.closeModal();
+    UI.toast(presetId ? `已应用预设「${presetName}」（最新版内容）` : '已停用预设', 'success');
+    // 顶部胶囊文字同步刷新
+    if (convId) {
+      await this._sleep(120);
+      await this.openChat(convId);
     }
   },
 
