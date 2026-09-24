@@ -389,6 +389,14 @@ ul, ol { list-style: none; }
 }
 .chat-conn-pill:hover .chat-conn-pill__caret { transform: translateY(1px); }
 
+/* 「连接预设」胶囊与连接胶囊纵向堆叠（连接在上、预设在下，同款风格） */
+.chat-conn-stack {
+  flex-basis: 100%;
+  display: flex; flex-direction: column; gap: 8px; align-items: stretch;
+}
+.chat-conn-stack .chat-conn-pill { width: 100%; justify-content: center; text-align: center; }
+.chat-preset-pill:hover { border-color: var(--color-wisteria, var(--color-rose)); }
+
 /* 模型选项列表 */
 .model-opt-list { display: flex; flex-direction: column; gap: 8px; }
 .model-opt {
