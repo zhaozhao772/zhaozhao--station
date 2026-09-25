@@ -166,6 +166,14 @@ ul, ol { list-style: none; }
   box-shadow: var(--shadow-sm);
 }
 .nav-item__icon { font-size: 20px; flex-shrink: 0; }
+/* 「今日工作台」自定义图标（粉色心形像素小电视）：随字号缩放，与文字基线对齐 */
+.nav-img-icon {
+  height: 1.05em;
+  width: auto;
+  vertical-align: -0.14em;
+  display: inline-block;
+  object-fit: contain;
+}
 .nav-item__label { flex: 1; }
 
 .main-area {
