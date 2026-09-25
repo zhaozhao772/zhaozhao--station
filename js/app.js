@@ -14,7 +14,7 @@ const App = {
 
   // 12个导航模块定义
   modules: [
-    { id: 'home',       name: '今日工作台', icon: '🏠', privacy: false },
+    { id: 'home',       name: '今日工作台', icon: '<img class="nav-img-icon" src="img/home_tv.png" alt="今日工作台">', privacy: false },
     { id: 'timer',      name: '工作与专注计时', icon: '⏱️', privacy: false },
     { id: 'projects',   name: '项目与内容管理', icon: '🎬', privacy: false },
     { id: 'reading',    name: '阅读模块', icon: '📖', privacy: false },
