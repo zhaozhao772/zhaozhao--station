@@ -18,7 +18,7 @@ const App = {
     { id: 'timer',      name: '工作与专注计时', icon: '<img class="nav-img-icon" src="img/timer_alarm.png" alt="工作与专注计时">', privacy: false },
     { id: 'projects',   name: '项目与内容管理', icon: '<img class="nav-img-icon" src="img/timer_cd.png" alt="项目与内容管理">', privacy: false },
     { id: 'reading',    name: '阅读模块', icon: '<img class="nav-img-icon" src="img/reading_note.png" alt="阅读模块">', privacy: false },
-    { id: 'workout',    name: '锻炼板块', icon: '🏃🏻‍♀️', privacy: false },
+    { id: 'workout',    name: '锻炼板块', icon: '<img class="nav-img-icon" src="img/workout_star.png" alt="锻炼板块">', privacy: false },
     { id: 'emotion',    name: '情绪天气监测', icon: '<img class="nav-img-icon" src="img/emotion_jar.png" alt="情绪天气监测">', privacy: false },
     { id: 'emotion-analysis', name: '情绪循环分析', icon: '🧠', privacy: false },
     { id: 'stats',      name: '综合数据统计', icon: '📊', privacy: false },
