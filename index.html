@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icons/icon.svg">
-  <link rel="stylesheet" href="css/style.css?v=2026092401">
+  <link rel="stylesheet" href="css/style.css?v=2026092501">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -30,7 +30,7 @@
   <!-- 隐私锁 -->
   <script src="js/privacy.js?v=2026081722"></script>
   <!-- 核心应用 -->
-  <script src="js/app.js?v=2026092301"></script>
+  <script src="js/app.js?v=2026092501"></script>
   <!-- 向导 -->
   <script src="js/wizard.js?v=2026081722"></script>
   <!-- 功能模块 -->
@@ -81,7 +81,7 @@
     } else {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js?v=13').then(reg => {
+          navigator.serviceWorker.register('sw.js?v=14').then(reg => {
             console.log('[SW] 注册成功 scope=', reg.scope);
           }).catch(err => {
             console.log('[SW] 注册失败:', err);
