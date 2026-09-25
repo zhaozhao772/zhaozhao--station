@@ -30,7 +30,7 @@
   <!-- 隐私锁 -->
   <script src="js/privacy.js?v=2026081722"></script>
   <!-- 核心应用 -->
-  <script src="js/app.js?v=2026092503"></script>
+  <script src="js/app.js?v=2026092504"></script>
   <!-- 向导 -->
   <script src="js/wizard.js?v=2026081722"></script>
   <!-- 功能模块 -->
@@ -81,7 +81,7 @@
     } else {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js?v=16').then(reg => {
+          navigator.serviceWorker.register('sw.js?v=17').then(reg => {
             console.log('[SW] 注册成功 scope=', reg.scope);
           }).catch(err => {
             console.log('[SW] 注册失败:', err);
