@@ -19,7 +19,7 @@ const App = {
     { id: 'projects',   name: '项目与内容管理', icon: '🎬', privacy: false },
     { id: 'reading',    name: '阅读模块', icon: '📖', privacy: false },
     { id: 'workout',    name: '锻炼板块', icon: '🏃🏻‍♀️', privacy: false },
-    { id: 'emotion',    name: '情绪天气监测', icon: '🌤️', privacy: false },
+    { id: 'emotion',    name: '情绪天气监测', icon: '<img class="nav-img-icon" src="img/emotion_jar.png" alt="情绪天气监测">', privacy: false },
     { id: 'emotion-analysis', name: '情绪循环分析', icon: '🧠', privacy: false },
     { id: 'stats',      name: '综合数据统计', icon: '📊', privacy: false },
     { id: 'review',     name: '每日复盘与设置', icon: '🌙', privacy: false },
