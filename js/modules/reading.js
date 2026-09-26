@@ -10,13 +10,13 @@ const ReadingModule = {
     const html = `
       <div class="page">
         <div class="flex justify-between items-center mb-4">
-          <div class="page__title" style="margin:0">📖 阅读模块</div>
+          <div class="page__title" style="margin:0"><img class="nav-img-icon" src="img/reading_note.png" alt="阅读模块"> 阅读模块</div>
           <button class="btn btn--primary btn--sm" onclick="ReadingModule.add()">+ 添加书籍</button>
         </div>
 
         ${books.length === 0 ? `
           <div class="card">
-            ${UI.empty('📚','还没有书籍，点击右上角添加')}
+            ${UI.empty('<img class="nav-img-icon" src="img/reading_note.png" alt="书籍">','还没有书籍，点击右上角添加')}
           </div>
         ` : categories.map(cat => {
           const catBooks = books.filter(b => b.category === cat);
@@ -30,7 +30,7 @@ const ReadingModule = {
               <div class="flex flex-col gap-2">
                 ${catBooks.map(b => `
                   <div class="list-item">
-                    <span class="book-icon">📚</span>
+                    <span class="book-icon"><img class="nav-img-icon" src="img/reading_note.png" alt="书籍"></span>
                     <div class="list-item__main" style="cursor:pointer" onclick="ReadingModule.detail('${b.id}')">
                       <div class="list-item__title">${b.title}</div>
                       <div class="list-item__sub">${b.author||'未知作者'} · ${b.platform||'-'}</div>
@@ -60,7 +60,7 @@ const ReadingModule = {
   },
 
   _catIcon(cat) {
-    return '📚';
+    return '<img class="nav-img-icon" src="img/reading_note.png" alt="书籍">';
   },
 
   async add() {
@@ -167,7 +167,7 @@ const ReadingModule = {
     const b = await DB.get('books', id);
     if (!b) return;
     const notes = (await DB.list('book_notes')).filter(n => !n.deleted_at && n.book_id === id);
-    UI.modal(`📖 ${b.title}`, `
+    UI.modal(`<img class="nav-img-icon" src="img/reading_note.png" alt="书籍"> ${b.title}`, `
       <div class="text-soft text-sm mb-3">${b.author||'未知'} · ${b.type||''} · ${b.format} · ${b.platform||''}</div>
       <div class="card-header">
         <div class="card-title">📝 笔记与摘录</div>
@@ -282,7 +282,7 @@ const ReadingModule = {
     el.innerHTML = `
       <div class="grid grid-2">
         <div>
-          <div class="text-soft text-sm mb-2">📚 已读 ${finished.length} 本</div>
+          <div class="text-soft text-sm mb-2"><img class="nav-img-icon" src="img/reading_note.png" alt="书籍"> 已读 ${finished.length} 本</div>
           <div class="text-faint text-xs">类型分布：</div>
           <ul class="text-sm mt-1">
             ${Object.entries(typeCount).sort((a,b)=>b[1]-a[1]).map(([t,c]) => `<li>${t}: ${c} 本</li>`).join('') || '<li class="text-faint">暂无</li>'}
