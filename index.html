@@ -36,7 +36,7 @@
   <!-- 功能模块 -->
   <script src="js/modules/home.js?v=2026081722"></script>
   <script src="js/modules/timer.js?v=2026081722"></script>
-  <script src="js/modules/reading.js?v=2026081722"></script>
+  <script src="js/modules/reading.js?v=2026092601"></script>
   <script src="js/modules/workout.js?v=2026081722"></script>
   <script src="js/modules/emotion.js?v=2026081722"></script>
   <script src="js/modules/soul.js?v=2026081722"></script>
@@ -81,7 +81,7 @@
     } else {
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js?v=19').then(reg => {
+          navigator.serviceWorker.register('sw.js?v=20').then(reg => {
             console.log('[SW] 注册成功 scope=', reg.scope);
           }).catch(err => {
             console.log('[SW] 注册失败:', err);
